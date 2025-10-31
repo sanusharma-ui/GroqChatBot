@@ -1,5 +1,5 @@
 # groq_handler.py
-from groq import Groq
+from backend.groq_handler import generate_response
 import os
 from dotenv import load_dotenv
 from fastapi import FastAPI
