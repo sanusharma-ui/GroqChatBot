@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Groq AI Chatbot - Multi-Mode Edition</title>
+    <title>Sanu Sharma - TattvionAI</title>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -88,19 +88,19 @@
             height: 90vh;
             max-height: 1000px;
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(20px);
             border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: background 0.5s ease, border 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .dark .chat-container {
             background: rgba(44, 44, 44, 0.95);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }
         .chat-header {
             background: var(--primary-gradient);
@@ -116,7 +116,8 @@
             overflow: hidden;
             flex-wrap: wrap;
             gap: 10px;
-            transition: background 0.5s ease;
+            transition: all 0.5s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
         .chat-header::before {
             content: '';
@@ -125,11 +126,12 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><defs><pattern id="grain" width="100" height="20" patternUnits="userSpaceOnUse"><circle cx="5" cy="10" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="20" fill="url(%23grain)"/></svg>');
-            opacity: 0.1;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><defs><pattern id="grain" width="100" height="20" patternUnits="userSpaceOnUse"><circle cx="5" cy="10" r="1" fill="white" opacity="0.05"/></pattern></defs><rect width="100" height="20" fill="url(%23grain)"/></svg>');
+            opacity: 0.08;
         }
         .dark .chat-header {
             background: var(--primary-gradient);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
         }
         .header-title {
             position: relative;
@@ -150,9 +152,10 @@
             font-size: 1.3rem;
             cursor: pointer;
             padding: 8px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             backdrop-filter: blur(10px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .language-select, .mode-select {
             font-size: 0.9rem;
@@ -161,13 +164,16 @@
         }
         .theme-toggle:hover, .language-select:hover, .mode-select:hover {
             background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         .theme-toggle:hover {
-            transform: rotate(180deg);
+            transform: rotate(180deg) translateY(-1px);
         }
         .language-select option, .mode-select option {
             background: var(--primary-gradient);
             color: white;
+            padding: 8px;
         }
         .dark .language-select option, .dark .mode-select option {
             background: var(--primary-gradient);
@@ -180,9 +186,26 @@
             background: var(--bg-light);
             scroll-behavior: smooth;
             transition: background 0.5s ease;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-gradient) rgba(0,0,0,0.05);
         }
         .dark .chat-messages {
             background: var(--bg-dark);
+            scrollbar-color: var(--primary-gradient) rgba(255,255,255,0.1);
+        }
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+            border-radius: 3px;
+        }
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--primary-gradient);
+            border-radius: 3px;
+        }
+        .dark .chat-messages::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
         }
         .welcome-message {
             text-align: center;
@@ -191,9 +214,15 @@
             margin-bottom: 20px;
             animation: fadeInUp 0.8s ease;
             transition: color 0.3s ease;
+            padding: 20px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
         .dark .welcome-message {
             color: var(--text-secondary);
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
@@ -206,6 +235,7 @@
             opacity: 0;
             animation: fadeInSlide 0.6s forwards;
             transform: translateX(-20px);
+            transition: all 0.3s ease;
         }
         .message.user {
             justify-content: flex-end;
@@ -231,7 +261,8 @@
             font-size: 1.2rem;
             font-weight: 600;
             flex-shrink: 0;
-            transition: background 0.5s ease;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .avatar.user {
             background: var(--primary-gradient);
@@ -255,10 +286,11 @@
             line-height: 1.6;
             position: relative;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            transition: all 0.3s ease, background 0.5s ease, color 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.5s ease, color 0.3s ease;
+            word-wrap: break-word;
         }
         .message:hover .message-content {
-            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             transform: translateY(-2px);
         }
         .message.user .message-content {
@@ -275,8 +307,9 @@
             border-bottom-left-radius: 8px;
         }
         .dark .message.bot .message-content {
-            background: var(--text-primary);
+            background: rgba(255,255,255,0.1);
             color: white;
+            backdrop-filter: blur(10px);
         }
         .message-time {
             font-size: 0.8rem;
@@ -285,6 +318,7 @@
             text-align: right;
             color: var(--text-secondary);
             transition: color 0.3s ease;
+            font-weight: 400;
         }
         .message.bot .message-time {
             text-align: left;
@@ -295,11 +329,13 @@
             background: rgba(255, 255, 255, 0.9);
             border-top: 1px solid var(--input-border);
             gap: 12px;
-            transition: background 0.5s ease, border 0.3s ease;
+            transition: all 0.5s ease, border 0.3s ease;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
         }
         .dark .chat-input {
             background: rgba(44, 44, 44, 0.9);
             border-top: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
         }
         .input-field {
             flex: 1;
@@ -308,9 +344,11 @@
             border-radius: 25px;
             outline: none;
             font-size: 1rem;
-            transition: all 0.3s ease, background 0.5s ease, border-color 0.3s ease, color 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.5s ease, border-color 0.3s ease, color 0.3s ease;
             background: var(--input-bg);
             color: var(--text-primary);
+            resize: none;
+            min-height: 48px;
         }
         .dark .input-field {
             background: rgba(255, 255, 255, 0.1);
@@ -319,9 +357,10 @@
         }
         .input-field:focus {
             border-color: var(--primary-gradient);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1), 0 4px 12px rgba(0,0,0,0.1);
             background: white;
             color: var(--text-primary);
+            transform: translateY(-1px);
         }
         .dark .input-field:focus {
             background: rgba(255, 255, 255, 0.2);
@@ -336,20 +375,22 @@
             cursor: pointer;
             font-size: 1rem;
             font-weight: 600;
-            transition: all 0.3s ease, background 0.5s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.5s ease;
             min-width: 80px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
         .dark .send-btn {
             background: var(--primary-gradient);
         }
         .send-btn:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
         }
         .send-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+            box-shadow: none;
         }
         .typing-indicator {
             display: flex;
@@ -360,6 +401,7 @@
             margin-bottom: 20px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             transition: background 0.5s ease;
+            backdrop-filter: blur(10px);
         }
         .dark .typing-indicator {
             background: rgba(74, 85, 104, 0.7);
@@ -404,24 +446,32 @@
             margin: 10px;
             text-align: center;
             border: 1px solid rgba(220, 38, 38, 0.2);
+            animation: shake 0.5s ease-in-out;
         }
         .dark .error-msg {
             background: rgba(127, 29, 29, 0.3);
             color: #fecaca;
             border-color: rgba(248, 113, 113, 0.3);
         }
-        /* Responsive */
-        @media (max-width: 600px) {
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        /* Enhanced Responsive */
+        @media (max-width: 768px) {
             .chat-container {
                 height: 100vh;
                 border-radius: 0;
                 margin: 0;
+                max-width: 100%;
             }
             .chat-header {
                 font-size: 1.4rem;
                 padding: 16px 20px;
                 flex-direction: column;
                 text-align: center;
+                gap: 8px;
             }
             .header-controls {
                 order: 3;
@@ -430,13 +480,16 @@
                 flex-wrap: wrap;
             }
             .language-select, .mode-select {
-                min-width: 120px;
+                min-width: 110px;
+                font-size: 0.85rem;
             }
             .message-content {
-                max-width: 85%;
+                max-width: 80%;
+                padding: 14px 18px;
             }
             .chat-input {
                 padding: 16px 20px;
+                gap: 8px;
             }
             .input-field {
                 font-size: 0.95rem;
@@ -445,27 +498,37 @@
             .send-btn {
                 padding: 14px 20px;
                 font-size: 0.95rem;
+                min-width: 70px;
             }
             .avatar {
                 width: 36px;
                 height: 36px;
                 font-size: 1.1rem;
+                margin: 0 10px;
+            }
+            .chat-messages {
+                padding: 20px 16px;
             }
         }
-        /* Scrollbar Styling */
-        .chat-messages::-webkit-scrollbar {
-            width: 6px;
-        }
-        .chat-messages::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.05);
-            border-radius: 3px;
-        }
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: var(--primary-gradient);
-            border-radius: 3px;
-        }
-        .dark .chat-messages::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.05);
+        @media (max-width: 480px) {
+            .header-title {
+                font-size: 1.2rem;
+            }
+            .language-select, .mode-select {
+                min-width: 90px;
+                padding: 6px 10px;
+            }
+            .message-content {
+                max-width: 85%;
+                padding: 12px 16px;
+                font-size: 0.95rem;
+            }
+            .input-field {
+                padding: 12px 16px;
+            }
+            .send-btn {
+                padding: 12px 18px;
+            }
         }
     </style>
 </head>
@@ -476,32 +539,32 @@
 
         const welcomeMessages = {
             'en': {
-                default: 'Hello! I\'m Groq AI, your versatile assistant. How can I help you today? 😊',
-                professional: 'Greetings! I am Groq AI, your professional consultant. What can I assist you with? 📊',
-                gf: 'Hey cutie! 💕 I\'m Groq, your fun GF AI. What\'s on your mind? Spill the tea! ☕',
-                casual: 'Yo! Groq here, your chill AI buddy. What\'s up? Let\'s chat! 🎉',
-                creative: 'Once upon a time... Hi! I\'m Groq, the creative muse. Ready to weave some magic? ✨'
+                default: 'Hello! I\'Tattvion, your versatile assistant. How can I help you today? 😊',
+                professional: 'Greetings! I am Tattvion, your professional consultant. What can I assist you with? 📊',
+                gf: 'Hey cutie! 💕 I\'m Tattvion, your fun GF AI. What\'s on your mind? Spill the tea! ☕',
+                casual: 'Yo!Tattvion here, your chill AI buddy. What\'s up? Let\'s chat! 🎉',
+                creative: 'Once upon a time... Hi! I\'m Tattvion, the creative muse. Ready to weave some magic? ✨'
             },
             'hi': {
-                default: 'नमस्ते! मैं Groq AI हूँ, आपका बहुमुखी सहायक। आज मैं आपकी कैसे मदद कर सकता हूँ? 😊',
-                professional: 'नमस्कार! मैं Groq AI हूँ, आपका पेशेवर सलाहकार। मैं आपकी कैसे सहायता कर सकता हूँ? 📊',
-                gf: 'हाय क्यूटी! 💕 मैं Groq हूँ, आपकी फन GF AI। क्या चल रहा है दिमाग में? चाय पी लो! ☕',
-                casual: 'यो! Groq यहाँ, आपका चिल AI दोस्त। क्या हाल है? चैट करते हैं! 🎉',
-                creative: 'एक बार की बात है... नमस्ते! मैं Groq हूँ, क्रिएटिव म्यूज। मैजिक बुनने को तैयार? ✨'
+                default: 'नमस्ते! मैं Tattvion हूँ, आपका बहुमुखी सहायक। आज मैं आपकी कैसे मदद कर सकता हूँ? 😊',
+                professional: 'नमस्कार! मैं Tattvion हूँ, आपका पेशेवर सलाहकार। मैं आपकी कैसे सहायता कर सकता हूँ? 📊',
+                gf: 'हाय क्यूटी! 💕 मैं Tattvion हूँ, आपकी फन GF AI। क्या चल रहा है दिमाग में? चाय पी लो! ☕',
+                casual: 'यो! Tattvion यहाँ, आपका चिल AI दोस्त। क्या हाल है? चैट करते हैं! 🎉',
+                creative: 'एक बार की बात है... नमस्ते! मैं Tattvion हूँ, क्रिएटिव म्यूज। मैजिक बुनने को तैयार? ✨'
             },
             'es': {
-                default: '¡Hola! Soy q AI, tu asistente versátil. ¿En qué puedo ayudarte hoy? 😊',
-                professional: '¡Saludos! Soy Groq AI, tu consultor profesional. ¿En qué puedo asistirte? 📊',
-                gf: '¡Hola guapo/a! 💕 Soy Groq, tu GF AI divertida. ¿Qué tienes en mente? ¡Cuéntame! ☕',
-                casual: '¡Ey! Groq aquí, tu colega AI relajado. ¿Qué pasa? ¡Hablemos! 🎉',
-                creative: 'Érase una vez... ¡Hola! Soy Groq, la musa creativa. ¿Listo para tejer magia? ✨'
+                default: '¡Hola! Soy Tattvion, tu asistente versátil. ¿En qué puedo ayudarte hoy? 😊',
+                professional: '¡Saludos! Soy Tattvion, tu consultor profesional. ¿En qué puedo asistirte? 📊',
+                gf: '¡Hola guapo/a! 💕 Soy Tattvion, tu GF AI divertida. ¿Qué tienes en mente? ¡Cuéntame! ☕',
+                casual: '¡Ey! Tattvion  aquí, tu colega AI relajado. ¿Qué pasa? ¡Hablemos! 🎉',
+                creative: 'Érase una vez... ¡Hola! Soy Tattvion, la musa creativa. ¿Listo para tejer magia? ✨'
             },
             'fr': {
-                default: 'Bonjour ! Je suis Groq AI, votre assistant polyvalent. Comment puis-je vous aider aujourd\'hui ? 😊',
-                professional: 'Bonjour ! Je suis Groq AI, votre consultant professionnel. En quoi puis-je vous assister ? 📊',
-                gf: 'Salut mon cœur ! 💕 Je suis Groq, ton IA GF fun. Qu\'est-ce qui te trotte dans la tête ? ☕',
-                casual: 'Yo ! Groq ici, ton pote IA décontracté. Quoi de neuf ? On discute ! 🎉',
-                creative: 'Il était une fois... Bonjour ! Je suis Groq, la muse créative. Prêt à tisser de la magie ? ✨'
+                default: 'Bonjour ! Je suis Tattvion, votre assistant polyvalent. Comment puis-je vous aider aujourd\'hui ? 😊',
+                professional: 'Bonjour ! Je suis Tattvion, votre consultant professionnel. En quoi puis-je vous assister ? 📊',
+                gf: 'Salut mon cœur ! 💕 Je suis Tattvion, ton IA GF fun. Qu\'est-ce qui te trotte dans la tête ? ☕',
+                casual: 'Yo ! Tattvion ici, ton pote IA décontracté. Quoi de neuf ? On discute ! 🎉',
+                creative: 'Il était une fois... Bonjour ! Je suis Tattvion, la muse créative. Prêt à tisser de la magie ? ✨'
             }
         };
 
@@ -605,7 +668,7 @@
             return (
                 <div className={`chat-container ${isDark ? 'dark' : ''}`}>
                     <div className="chat-header">
-                        <div className="header-title">🚀 Groq AI Chatbot</div>
+                        <div className="header-title">Sanu Sharma - TattvionAI</div>
                         <div className="header-controls">
                             <select 
                                 value={selectedLanguage} 
@@ -654,7 +717,7 @@
                                     <div className="typing-dots">
                                         <span></span><span></span><span></span>
                                     </div>
-                                    <span className="typing-text">Groq is typing...</span>
+                                    <span className="typing-text">Sanu is typing...</span>
                                 </div>
                             </div>
                         )}
@@ -688,4 +751,4 @@
         ReactDOM.render(<ChatApp />, document.getElementById('root'));
     </script>
 </body>
-</html>   
+</html>
