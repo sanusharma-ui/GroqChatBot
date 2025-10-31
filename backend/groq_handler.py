@@ -1,10 +1,6 @@
 import os
 from dotenv import load_dotenv
 from groq import Groq
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import uvicorn
 
 # Load environment variables
 load_dotenv()
@@ -16,25 +12,7 @@ if not api_key:
 # Initialize Groq client
 client = Groq(api_key=api_key)
 
-# FastAPI app
-app = FastAPI(title="Groq AI Chat API")
-
-# Allow all origins temporarily
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Change to specific domains later
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Pydantic model for requests
-class ChatRequest(BaseModel):
-    message: str
-    language: str = "en"
-    mode: str = "default"
-
-# Language dictionary
+# Language options
 LANGUAGES = {
     "en": "English",
     "hi": "Hindi",
@@ -42,7 +20,7 @@ LANGUAGES = {
     "fr": "French"
 }
 
-# Modes (tone/purpose)
+# Tone / Modes
 MODES = {
     "default": "You are a helpful AI assistant. Be friendly, concise, and engaging.",
     "professional": "You are a professional AI consultant. Be formal, precise, and insightful. Provide structured responses when appropriate.",
@@ -51,7 +29,7 @@ MODES = {
     "creative": "You are a creative storyteller AI. Be imaginative, descriptive, and inspiring. Weave narratives or ideas creatively."
 }
 
-# Core logic: Generate response
+# Core logic: Generate AI response
 def generate_response(user_message: str, language: str = "en", mode: str = "default") -> str:
     lang_name = LANGUAGES.get(language, "English")
     mode_prompt = MODES.get(mode, MODES["default"])
@@ -70,13 +48,3 @@ def generate_response(user_message: str, language: str = "en", mode: str = "defa
         return chat_completion.choices[0].message.content.strip()
     except Exception as e:
         return f"Oops! Error occurred: {str(e)}"
-
-# API endpoint
-@app.post("/chat")
-async def chat(request: ChatRequest):
-    reply = generate_response(request.message, request.language, request.mode)
-    return {"reply": reply}
-
-# For local testing
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
