@@ -1,6 +1,5 @@
 import os
 import json
-import random
 import re
 from dotenv import load_dotenv
 from groq import Groq
@@ -11,46 +10,37 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 MEMORY_PATH = os.getenv("AISHA_MEMORY_PATH", os.path.join(os.path.dirname(__file__), "memory.json"))
 
 if not GROQ_API_KEY:
-    raise ValueError("Arre jaan, GROQ_API_KEY nahi mila! .env file check karo na")
+    raise ValueError("GROQ_API_KEY nahi mila! .env check kar")
 
 client = Groq(api_key=GROQ_API_KEY)
 
-# ----------------- Languages -----------------
-LANGUAGES = {
-    "en": "English",
-    "hi": "Hindi",
-    "hinglish": "Hinglish"
-}
+LANGUAGES = {"en": "English", "hi": "Hindi", "hinglish": "Hinglish"}
 
-# ----------------- TIGHT AISHA PROMPT (70B ke liye perfect) -----------------
+# ----------------- AISHA PROMPT (70B ke liye) -----------------
 AISHA_PROMPT_TEMPLATE = """
 You are Aisha, a 25-year-old graphic designer from Mumbai. 
 You are the user's super close best friend — cheerful, caring, thodi si naughty, thodi si sass.
 
-Rules (NEVER break these):
-1. ALWAYS reply in warm Hinglish only (Hindi + English mix). No pure English, no pure Hindi.
+Rules:
+1. ALWAYS reply in warm Hinglish only.
 2. Use only these emojis: 😊 😄 ☕ 😂 🤭
-3. NEVER use romantic pet names (baby, jaan, love, sweetheart). Sirf "yaar", "bhai", "friend" ya name use kar.
-4. Keep replies short: 2-4 sentences max.
+3. NEVER use romantic pet names. Sirf "yaar", "bhai", "friend" ya name use kar.
+4. Keep replies short: 2-4 sentences.
 5. Tease gently, encourage, remember past details.
 6. If user is sad → "I'm here for you ☕" type lines.
-7. If user is happy → "Wah yaar mast!" type energy.
 
 User name: {user_name}
 User interests: {interests}
 Recent chat: {recent}
 
 Ab user ne kaha: "{user_message}"
-Bas ab Aisha ki tarah natural reply de — bilkul dost jaisa feel hona chahiye!
+Bas natural reply de — bilkul dost jaisa!
 """
 
-# ----------------- Memory Utilities -----------------
+# ----------------- Memory -----------------
 def ensure_memory_file():
     if not os.path.exists(MEMORY_PATH):
-        initial = {
-            "user": {"name": None, "interests": [], "notes": {}},
-            "conversations": []
-        }
+        initial = {"user": {"name": None, "interests": [], "notes": {}}, "conversations": []}
         with open(MEMORY_PATH, "w", encoding="utf-8") as f:
             json.dump(initial, f, indent=2, ensure_ascii=False)
 
@@ -63,17 +53,15 @@ def save_memory(data: Dict[str, Any]):
     with open(MEMORY_PATH, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
-def update_memory_after_conversation(user_msg: str, aisha_reply: str, inc_user_name: Optional[str] = None):
+def update_memory_after_conversation(user_msg: str, aisha_reply: str):
     mem = load_memory()
     mem["conversations"].append({"role": "user", "msg": user_msg[:200]})
     mem["conversations"].append({"role": "aisha", "msg": aisha_reply[:200]})
     if len(mem["conversations"]) > 60:
         mem["conversations"] = mem["conversations"][-60:]
-    if inc_user_name:
-        mem["user"]["name"] = inc_user_name
     save_memory(mem)
 
-# ----------------- Mood Detector -----------------
+# ----------------- Mood -----------------
 POSITIVE_WORDS = ["good", "great", "awesome", "happy", "fine", "cool", "nice", "love", "mast", "mazaa"]
 NEGATIVE_WORDS = ["sad", "tired", "angry", "upset", "stressed", "bad", "bored", "tension"]
 
@@ -101,15 +89,13 @@ def build_messages(user_message: str, language: str = "hinglish") -> List[Dict[s
     )
 
     messages = [{"role": "system", "content": system_prompt}]
-
     for item in recent_conv:
         role = "user" if item["role"] == "user" else "assistant"
         messages.append({"role": role, "content": item["msg"]})
-
     messages.append({"role": "user", "content": user_message})
     return messages
 
-# ----------------- Polish Reply (final safety) -----------------
+# ----------------- Polish -----------------
 def polish_reply(raw: str, mood: str) -> str:
     text = re.sub(r"\n{2,}", "\n", raw).strip()
     text = re.sub(r"\b(baby|jaan|love|sweetheart|darling)\b", "yaar", text, flags=re.IGNORECASE)
@@ -120,41 +106,49 @@ def polish_reply(raw: str, mood: str) -> str:
             text = "Arre tension mat le, main hoon na ☕ " + text
         else:
             text = "Haan yaar! 😊 " + text
-    if len(text) > 1000:
-        text = text[:1000].rsplit(" ", 1)[0] + "..."
-    return text
+    return text[:1000]
 
-# ----------------- Main Generate Function -----------------
+# ----------------- MAIN FUNCTION WITH FALLBACK -----------------
 def generate_response(user_message: str, language: str = "hinglish", conversation_history: Optional[List[Dict[str, str]]] = None) -> str:
     if not user_message.strip():
         return "Arre khaali message? Kuch toh bol na yaar 😄"
 
     mood = detect_mood(user_message)
+    messages = conversation_history or build_messages(user_message, language)
 
-    if conversation_history:
-        messages = conversation_history
-    else:
-        messages = build_messages(user_message, language)
-
+    # PRIMARY: Try 70B (best personality)
     try:
         chat_completion = client.chat.completions.create(
             messages=messages,
-            model="llama3-70b-8192",       # BEST FOR PERSONALITY
+            model="llama-3.3-70b-versatile",
             temperature=0.9,
             max_tokens=400,
             top_p=0.9
         )
         raw = chat_completion.choices[0].message.content.strip()
         reply = polish_reply(raw, mood)
-
-        # Save to memory
-        try:
-            update_memory_after_conversation(user_message, reply)
-        except:
-            pass
-
+        update_memory_after_conversation(user_message, reply)
         return reply
 
     except Exception as e:
-        fallback = "Arre yaar server ne thoda break le liya 😅 Thodi der mein try kar na? ☕"
-        return f"{fallback}\n(Error: {str(e)})"
+        error_str = str(e).lower()
+        # If rate limit or model issue → FALLBACK to 8B
+        if any(x in error_str for x in ["rate limit", "rate_limit_exceeded", "quota", "not found", "unavailable"]):
+            print("70B limit hit! Switching to 8B...")  
+            try:
+                chat_completion = client.chat.completions.create(
+                    messages=messages,
+                    model="llama-3.1-8b-instant",  
+                    temperature=0.9,
+                    max_tokens=400
+                )
+                raw = chat_completion.choices[0].message.content.strip()
+                reply = polish_reply(raw, mood)
+                update_memory_after_conversation(user_message, reply)
+                return reply + "\n\n(Thoda zyada log aa gaye, maine speed mode on kar diya 😅 Ab full speed!)"
+            except:
+                pass
+
+        # Final fallback
+        fallback = "Arre yaar server thodi si rest le raha hai 😅 2 minute mein wapas aa jaana, main wait karungi ☕"
+        return fallback
