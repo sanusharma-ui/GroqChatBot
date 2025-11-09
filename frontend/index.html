@@ -30,7 +30,8 @@
       from {opacity: 0; transform: translateY(20px);}
       to {opacity: 1; transform: translateY(0);}
     }
-    .message.user {flex-direction: row-reverse; justify-content: flex-end;}
+    .message.user {align-self: flex-end; flex-direction: row-reverse; gap: 8px;}
+    .message.bot {align-self: flex-start;}
     .avatar {width:32px;height:32px;border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.1rem; font-weight:600; flex-shrink:0;}
     @media (max-width: 600px) {.avatar {width:28px;height:28px; font-size:1rem;}}
     .avatar.user {background: linear-gradient(90deg, #0369a1, #0891b2); color:white;}
@@ -47,8 +48,8 @@
     .message.bot .message-content {background: #0e1726; color: #dbeafe; border: 1px solid rgba(255, 255, 255, 0.03); border-bottom-left-radius:8px;}
     body.light .message.bot .message-content {background: white; color: #9c27b0; border-bottom-left-radius:20px;}
     .message-time {font-size:12px; opacity:0.7; margin-top:4px; min-width: fit-content;}
-    .message-wrapper.user .message-time {text-align: right; align-self: flex-end;}
-    .message-wrapper.bot .message-time {text-align: left; align-self: flex-start;}
+    .message-wrapper.user .message-time {text-align: right;}
+    .message-wrapper.bot .message-time {text-align: left;}
     body.light .message-time {color: #666;}
     @media (max-width: 600px) {.message-time {font-size:11px;}}
     .chat-input {display:flex; padding:10px 14px; gap:8px; border-top: 1px solid rgba(255, 255, 255, 0.03); align-items: flex-end; background: #071027; transition: background 0.5s ease;}
@@ -102,7 +103,7 @@ const { useState, useEffect, useRef } = React;
 
 const welcomeMessages = {
     'en': 'Hey jaan! I’m Aisha – teri sweet GF ya brutal roaster, jo mood ho! <br>Normal baat kar → pyar milega <br><b>roast:</b> likh ke shuru kar → ego jale ga! <br><br>Kya bolta hai, bae? Ready hai jalne ko ya pyar chahiye?',
-    'hi': 'हाय जान! 💖 मैं ऐशा हूँ, तुम्हारी स्वीट GF या ब्रूटल रोस्टर, जो मूड हो! <br>नॉर्मल बात कर → प्यार मिलेगा <br><b>roast:</b> लिख के शुरू कर → एगो जलेगा! <br><br>क्या बोलता है, बेब? रेडी है जलने को या प्यार चाहिए?',
+    'hi': 'हाय जान! मैं ऐशा हूँ, तुम्हारी स्वीट GF या ब्रूटल रोस्टर, जो मूड हो! <br>नॉर्मल बात कर → प्यार मिलेगा <br><b>roast:</b> लिख के शुरू कर → एगो जलेगा! <br><br>क्या बोलता है, बेब? रेडी है जलने को या प्यार चाहिए?',
     'es': '¡Hola cariño! Soy Aisha – tu novia dulce o asadora brutal, ¡depende del mood! <br>Charla normal → amor te daré <br><b>roast:</b> empieza así → ¡tu ego arderá! <br><br>¿Qué dices, bae? ¿Listo para quemarte o prefieres amor?',
     'fr': 'Salut mon cœur! Je suis Aisha – ta copine douce ou roast brutale, selon l’humeur ! <br>Parle normal → amour en retour <br><b>roast:</b> commence comme ça → ton ego va brûler ! <br><br>Qu’en dis-tu, bae ? Prêt à te faire rôtir ou tu veux de l’amour ?'
 };
@@ -121,43 +122,80 @@ const ChatApp = () => {
         setMessages([{type:'bot',content:welcomeMessages[selectedLanguage],timestamp:new Date().toLocaleTimeString()}]);
     },[selectedLanguage]);
 
-    useEffect(()=>{messagesEndRef.current?.scrollIntoView({behavior:'smooth'});},[messages]);
+    // Scroll to bottom every time messages change
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
 
     const sendMessage = async ()=>{
         if(!input.trim()||isLoading)return;
-        const userMessage={type:'user',content:input,timestamp:new Date().toLocaleTimeString()};
-        setMessages(prev=>[...prev,userMessage]);
+
+        // Add user message immediately
+        const userMessage = {type:'user',content:input,timestamp:new Date().toLocaleTimeString()};
+        setMessages(prev => [...prev, userMessage]);
         setConversationHistory(prev=>[...prev,{role:'user',content:input}]);
-        setInput(''); setIsLoading(true); setError(null);
+        setInput('');
+        setIsLoading(true);
+        setError(null);
+
         try{
             const response = await fetch('https://groqchatbot-xoiv.onrender.com/chat',{
                 method:'POST',
                 headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({message:userMessage.content,language:selectedLanguage,conversation_history:conversationHistory})
+                body:JSON.stringify({message:input,language:selectedLanguage})
             });
-            if(!response.ok)throw new Error(`Server error: ${response.status}`);
+            if(!response.ok) throw new Error(`Server error: ${response.status}`);
             const data = await response.json();
-            const botMessage={type:'bot',content:data.reply,timestamp:new Date().toLocaleTimeString()};
-            setConversationHistory(prev=>[...prev,{role:'assistant',content:data.reply}]);
-            // Typing effect with plain text simulation, set full HTML at end
+
+            // Add bot message with typing effect
+            const botMessage = {type:'bot',content:data.reply,timestamp:new Date().toLocaleTimeString()};
             let typedContent = '';
-            const plainContent = data.reply.replace(/<[^>]*>/g, ''); // Strip HTML for typing
-            for(let i=0;i<plainContent.length;i++){
-                await new Promise(r=>setTimeout(r,15));
-                typedContent += plainContent[i];
-                setMessages(prev=>[...prev.slice(0,-1),{...botMessage,content:typedContent + '|', isTyping: true}]);
+            const plainText = data.reply.replace(/<[^>]*>/g, '');
+            
+            for(let i = 0; i <= plainText.length; i++){
+                await new Promise(r => setTimeout(r, 20));
+                typedContent = plainText.substring(0, i);
+                setMessages(prev => {
+                    const newMsgs = [...prev];
+                    if(newMsgs[newMsgs.length-1]?.isTyping){
+                        newMsgs[newMsgs.length-1] = {...newMsgs[newMsgs.length-1], content: typedContent + '|', isTyping: true};
+                    } else {
+                        newMsgs.push({type:'bot', content: typedContent + '|', timestamp: botMessage.timestamp, isTyping: true});
+                    }
+                    return newMsgs;
+                });
             }
-            // Set full content at end
-            setMessages(prev=>[...prev.slice(0,-1),{...botMessage,content:data.reply, isTyping: false}]);
+            // Replace last typing message with final message
+            setMessages(prev => {
+                const newMsgs = [...prev];
+                newMsgs[newMsgs.length-1] = botMessage;
+                return newMsgs;
+            });
+
+            setConversationHistory(prev=>[...prev,{role:'assistant',content:data.reply}]);
         }catch(err){
             setError(`Oops! ${err.message}`);
-            setMessages(prev=>[...prev,{type:'bot',content:`Arre bae, kuch gadbad: ${err.message}. Thodi der baad try karo! 😅`,timestamp:new Date().toLocaleTimeString()}]);
-        }finally{setIsLoading(false);}
+            setMessages(prev=>[...prev,{type:'bot',content:`Arre bae, kuch gadbad: ${err.message}. Thodi der baad try karo!`,timestamp:new Date().toLocaleTimeString()}]);
+        }finally{
+            setIsLoading(false);
+        }
     };
 
-    const handleKeyPress=(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}};
-    const toggleTheme=()=>{setIsDark(prev=>!prev); document.body.className = !prev ? 'light' : 'dark';};
-    const startVoiceInput=()=>{alert('Voice mode is only available on Grok iOS/Android apps! 😘');};
+    const handleKeyPress = (e) => {
+        if(e.key==='Enter' && !e.shiftKey){
+            e.preventDefault();
+            sendMessage();
+        }
+    };
+
+    const toggleTheme = () => {
+        setIsDark(prev => !prev);
+        document.body.className = !prev ? 'light' : 'dark';
+    };
+
+    const startVoiceInput = () => {
+        alert('Voice mode is only available on Grok iOS/Android apps!');
+    };
 
     return(
         <div className={`chat-container ${isDark ? 'dark' : 'light'}`}>
@@ -165,21 +203,23 @@ const ChatApp = () => {
                 <div className="header-title">Sanu Sharma - Aisha AI</div>
                 <div className="header-controls">
                     <select value={selectedLanguage} onChange={e=>setSelectedLanguage(e.target.value)} className="language-select">
-                        <option value="en">English</option><option value="hi">Hindi</option>
-                        <option value="es">Spanish</option><option value="fr">French</option>
+                        <option value="en">English</option>
+                        <option value="hi">Hindi</option>
+                        <option value="es">Spanish</option>
+                        <option value="fr">French</option>
                     </select>
-                    <button className="theme-toggle" onClick={toggleTheme}>{isDark ? '☀️' : '🌙'}</button>
+                    <button className="theme-toggle" onClick={toggleTheme}>{isDark ? 'Sun' : 'Moon'}</button>
                 </div>
             </div>
             <div className="chat-messages">
                 {messages.map((msg,i)=>(
                     <div key={i} className={`message ${msg.type}`}>
-                        {msg.type === 'bot' && <div className="avatar bot">💖</div>}
-                        <div className={`message-wrapper ${msg.type}`}>
+                        {msg.type === 'bot' && <div className="avatar bot">Heart</div>}
+                        <div className="message-wrapper">
                             <div className="message-content" dangerouslySetInnerHTML={{__html: msg.content.replace(/\|$/, '')}} />
                             <div className="message-time">{msg.timestamp}</div>
                         </div>
-                        {msg.type === 'user' && <div className="avatar user">👤</div>}
+                        {msg.type === 'user' && <div className="avatar user">😎</div>}
                     </div>
                 ))}
                 {isLoading && (
@@ -193,7 +233,7 @@ const ChatApp = () => {
                         </div>
                     </div>
                 )}
-                {error && <div className="error-msg" role="alert">{error}</div>}
+                {error && <div className="error-msg">{error}</div>}
                 <div ref={messagesEndRef} />
             </div>
             <div className="chat-input">
@@ -205,18 +245,17 @@ const ChatApp = () => {
                     placeholder="Type your message... (Shift+Enter for new line)" 
                     disabled={isLoading}
                     rows={1}
-                    style={{overflowY: input.length > 100 ? 'auto' : 'hidden'}}
                 />
                 <button className="send-btn" onClick={sendMessage} disabled={isLoading || !input.trim()}>
-                    {isLoading ? '⏳' : 'Send'}
+                    {isLoading ? 'Hourglass' : 'Send'}
                 </button>
-                <button className="voice-btn" onClick={startVoiceInput}>🎙️</button>
+                <button className="voice-btn" onClick={startVoiceInput}>Microphone</button>
             </div>
         </div>
     );
 };
 
-ReactDOM.render(<ChatApp />,document.getElementById('root'));
+ReactDOM.render(<ChatApp />, document.getElementById('root'));
 </script>
 </body>
 </html>
