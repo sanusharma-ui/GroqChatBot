@@ -1,13 +1,24 @@
-from fastapi import FastAPI
+
+import sys
+import os
+import traceback
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from backend.groq_handler import generate_response
-import os
+from typing import Optional, List, Dict
 
-app = FastAPI(title="Groq AI Chatbot")
+from backend.groq_handler import generate_response, LANGUAGES, load_memory, save_memory, update_memory_after_conversation, ensure_memory_file
 
-# Allow frontend connections
+app = FastAPI(
+    title="Aisha — Friendly AI",
+    description="Aisha: your warm, caring AI best friend. Uses Groq under the hood and a small memory layer.",
+    version="1.0"
+)
+
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -15,30 +26,68 @@ app.add_middleware(
         "http://localhost:8000",
         "http://127.0.0.1:5500",
         "http://127.0.0.1:8000",
-        "https://sonu-frontend.onrender.com/",
-        "*"  # for Render or testing
+        "https://sonu-frontend.onrender.com",
+        "*"
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Pydantic model for POST
+# Request model
 class ChatRequest(BaseModel):
     message: str
     language: str = "en"
-    mode: str = "default"
 
+# Basic routes
 @app.get("/")
 def home():
-    return {"message": "Groq Chatbot API is live and running!"}
+    ensure_memory_file()
+    return {
+        "status": "Aisha is ready! 💖",
+        "hint": "POST /chat with JSON { message, language }"
+    }
+
+@app.get("/modes")
+def modes():
+    return {"mode": "aisha", "description": "Friendly best-friend style (Hinglish-friendly)."}
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "detail": "Aisha backend alive"}
+
+# Read memory (dev only)
+@app.get("/memory")
+def memory():
+    mem = load_memory()
+    return {"memory": mem}
+
+# Endpoint to update user metadata (optional)
+class UpdateUserMeta(BaseModel):
+    name: Optional[str] = None
+    interests: Optional[List[str]] = None
+    notes: Optional[Dict[str,str]] = None
+
+@app.post("/memory/update")
+def memory_update(payload: UpdateUserMeta):
+    mem = load_memory()
+    if payload.name:
+        mem["user"]["name"] = payload.name
+    if payload.interests:
+        mem["user"]["interests"] = payload.interests
+    if payload.notes:
+        mem["user"]["notes"].update(payload.notes)
+    save_memory(mem)
+    return {"status": "ok", "message": "Memory updated"}
 
 @app.post("/chat")
 def chat(request: ChatRequest):
-    reply = generate_response(request.message, request.language, request.mode)
-    return {"reply": reply}
+    if not request.message.strip():
+        raise HTTPException(status_code=400, detail="Khaali message mat bhej yaar 😄")
 
-# Mount frontend (for static hosting)
-frontend_dir = os.path.join(os.path.dirname(__file__), "../frontend")
-if os.path.exists(frontend_dir):
-    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="static")
+    try:
+        reply = generate_response(request.message, request.language)
+        return {"reply": reply}
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
