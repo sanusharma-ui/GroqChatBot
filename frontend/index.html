@@ -200,7 +200,8 @@ const ChatApp = () => {
                 type: 'bot',
                 content: data.reply,
                 timestamp: new Date().toLocaleTimeString(),
-                image: data.image_path ? `https://groqchatbot-xoiv.onrender.com/${data.image_path}` : null,
+                // image: data.image_path ? `https://groqchatbot-xoiv.onrender.com/${data.image_path}` : null,
+                image: data.image_path ? `https://groqchatbot-xoiv.onrender.com/uploads/${data.filename}` : null,
             };
 
             let typedContent = '';

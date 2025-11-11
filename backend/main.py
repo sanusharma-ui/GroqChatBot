@@ -13,7 +13,7 @@ import mimetypes
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from backend.groq_handler import generate_response, LANGUAGES, load_memory, save_memory, update_memory_after_conversation, ensure_memory_file
+from backend.groq_handler import generate_response, LANGUAGES, load_memory, save_memory, ensure_memory_file
 
 app = FastAPI(
     title="Aisha — Friendly AI",
@@ -29,18 +29,17 @@ app.add_middleware(
         "http://localhost:8000",
         "http://127.0.0.1:5500",
         "http://127.0.0.1:8000",
-        "https://sonu-frontend.onrender.com",
+        "https://sonu-frontend.onrender.com", 
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Setup uploads directory
-UPLOAD_DIR = Path("uploads")
-UPLOAD_DIR.mkdir(exist_ok=True)
+UPLOAD_DIR = Path("/tmp/uploads")  
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-# Request model
+# Request models
 class ChatRequest(BaseModel):
     message: str
     language: str = "en"
@@ -49,34 +48,31 @@ class ImageChatRequest(BaseModel):
     message: Optional[str] = None
     language: str = "en"
 
-# Basic routes
-@app.get("/")
-def home():
-    ensure_memory_file()
-    return {
-        "status": "Aisha is ready! 💖",
-        "hint": "POST /chat with JSON { message, language } or POST /chat/image for image upload"
-    }
-
-@app.get("/modes")
-def modes():
-    return {"mode": "aisha", "description": "Friendly best-friend style (Hinglish-friendly)."}
-
-@app.get("/health")
-def health():
-    return {"status": "ok", "detail": "Aisha backend alive"}
-
-# Read memory (dev only)
-@app.get("/memory")
-def memory():
-    mem = load_memory()
-    return {"memory": mem}
-
-# Endpoint to update user metadata
 class UpdateUserMeta(BaseModel):
     name: Optional[str] = None
     interests: Optional[List[str]] = None
     notes: Optional[Dict[str, str]] = None
+
+# Routes
+@app.get("/")
+def home():
+    ensure_memory_file()
+    return {
+        "status": "Aisha is ready!",
+        "hint": "POST /chat or /chat/image"
+    }
+
+@app.get("/modes")
+def modes():
+    return {"mode": "aisha", "description": "Friendly best-friend style."}
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+@app.get("/memory")
+def memory():
+    return {"memory": load_memory()}
 
 @app.post("/memory/update")
 def memory_update(payload: UpdateUserMeta):
@@ -88,12 +84,12 @@ def memory_update(payload: UpdateUserMeta):
     if payload.notes:
         mem["user"]["notes"].update(payload.notes)
     save_memory(mem)
-    return {"status": "ok", "message": "Memory updated"}
+    return {"status": "ok"}
 
 @app.post("/chat")
 def chat(request: ChatRequest):
     if not request.message.strip():
-        raise HTTPException(status_code=400, detail="Khaali message mat bhej yaar 😄")
+        raise HTTPException(status_code=400, detail="Empty message!")
     try:
         reply = generate_response(request.message, request.language)
         return {"reply": reply}
@@ -101,55 +97,58 @@ def chat(request: ChatRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
 
-# New endpoint for image upload
+# FIXED IMAGE ENDPOINT
 @app.post("/chat/image")
 async def chat_image(
     file: UploadFile = File(...),
     message: Optional[str] = None,
     language: str = "en"
 ):
-    # Validate file type
-    allowed_types = ["image/jpeg", "image/png", "image/gif"]
-    if file.content_type not in allowed_types:
-        raise HTTPException(status_code=400, detail="Only JPEG, PNG, or GIF images allowed! 😏")
+    # Validate type
+    allowed = ["image/jpeg", "image/png", "image/gif", "image/webp"]
+    if file.content_type not in allowed:
+        raise HTTPException(status_code=400, detail="Only JPEG, PNG, GIF, WebP allowed!")
 
-    # Validate file size (e.g., max 5MB)
-    max_size = 5 * 1024 * 1024  # 5MB
+    # Validate size (5MB)
     content = await file.read()
-    if len(content) > max_size:
-        raise HTTPException(status_code=400, detail="Image too large! Keep it under 5MB. 🙄")
-
-    # Generate unique filename
-    file_ext = mimetypes.guess_extension(file.content_type) or ".jpg"
-    filename = f"{uuid.uuid4()}{file_ext}"
-    file_path = UPLOAD_DIR / filename
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Image too big! Max 5MB.")
 
     # Save file
-    with file_path.open("wb") as f:
+    ext = mimetypes.guess_extension(file.content_type) or ".jpg"
+    filename = f"{uuid.uuid4()}{ext}"
+    file_path = UPLOAD_DIR / filename
+    with open(file_path, "wb") as f:
         f.write(content)
 
-    # Update memory with image info
-    mem = load_memory()
-    mem["conversations"].append({
-        "role": "user",
-        "msg": f"Uploaded image: {filename}" + (f" | Message: {message}" if message else "")
-    })
-    save_memory(mem)
+    # TEXT FOR AI
+    user_text = message.strip() if message and message.strip() else "Describe this image."
 
-    # Generate response
     try:
-        # If Grok supports image description, modify this part
-        user_message = message or "User uploaded an image."
-        user_message += f" [Image: {filename}]"
-        reply = generate_response(user_message, language)
+        
+        reply = generate_response(
+            user_message=user_text,
+            language=language,
+            image_path=str(file_path)   # FIXED!
+        )
+
+        # Memory update
+        mem = load_memory()
+        mem["conversations"].append({
+            "role": "user",
+            "msg": f"[Image: {filename}] {user_text}"
+        })
+        save_memory(mem)
+
         return {
             "reply": reply,
-            "image_path": str(file_path.relative_to(Path.cwd())),
+            "image_path": f"uploads/{filename}",   
             "filename": filename
         }
+
     except Exception as e:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Vision error: {str(e)}")
 
-# Serve uploaded images (optional, for frontend access)
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+# SERVE IMAGES FROM /tmp/uploads
+app.mount("/uploads", StaticFiles(directory="/tmp/uploads"), name="uploads")

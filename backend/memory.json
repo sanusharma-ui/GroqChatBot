@@ -1,7 +1,11 @@
 {
   "user": {
-    "name": "Sonu",
-    "interests": ["AI", "coding", "space"],
+    "name": "Sanu",
+    "interests": [
+      "AI",
+      "coding",
+      "Love"
+    ],
     "notes": {}
   },
   "conversations": []
