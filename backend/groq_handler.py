@@ -174,7 +174,7 @@ def generate_response(user_message: str, language: str = "en", conversation_hist
             try:
                 chat_completion = client.chat.completions.create(
                     messages=messages,
-                    model="llama-3.2-11b-vision-preview",
+                    model="meta-llama/llama-4-scout-17b-16e-instruct",
                     temperature=0.9,
                     max_tokens=400
                 )
