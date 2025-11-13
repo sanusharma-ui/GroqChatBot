@@ -10,15 +10,11 @@ import shutil
 from pathlib import Path
 import uuid
 import mimetypes
-
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
 from backend.groq_handler import (
     generate_response,
     PERSONAS,
-    load_memory,
-    save_memory,
-    ensure_memory_file,
+    ensure_persona_memory,
     load_persona_memory,
     save_persona_memory
 )
@@ -62,10 +58,9 @@ class UpdateUserMeta(BaseModel):
     notes: Optional[Dict[str, str]] = None
 
 # --- ROUTES ---
-
 @app.get("/")
 def home():
-    ensure_memory_file()
+    ensure_persona_memory("default")
     return {
         "status": "Aisha is ready!",
         "hint": "POST /chat or /chat/image",
@@ -78,18 +73,18 @@ def health():
 
 @app.get("/memory")
 def memory():
-    return {"memory": load_memory()}
+    return {"memory": load_persona_memory("default")}
 
 @app.post("/memory/update")
 def memory_update(payload: UpdateUserMeta):
-    mem = load_memory()
+    mem = load_persona_memory("default")
     if payload.name:
         mem["user"]["name"] = payload.name
     if payload.interests:
         mem["user"]["interests"] = payload.interests
     if payload.notes:
         mem["user"]["notes"].update(payload.notes)
-    save_memory(mem)
+    save_persona_memory("default", mem)
     return {"status": "ok"}
 
 @app.get("/modes/list")
@@ -103,14 +98,12 @@ def chat(request: ChatRequest, mode: str = "default"):
         mode = "default"
     if not request.message.strip():
         raise HTTPException(status_code=400, detail="Empty message!")
-
     try:
         reply = generate_response(
             user_message=request.message,
             persona_key=mode,
             language=request.language
         )
-
         # Per-persona memory
         mem = load_persona_memory(mode)
         mem["conversations"].append({
@@ -124,13 +117,11 @@ def chat(request: ChatRequest, mode: str = "default"):
         if len(mem["conversations"]) > 60:
             mem["conversations"] = mem["conversations"][-60:]
         save_persona_memory(mode, mem)
-
         return {
             "reply": reply,
             "mode": mode,
             "display_name": PERSONAS[mode]["name"]
         }
-
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
@@ -147,22 +138,18 @@ async def chat_image(
     allowed = ["image/jpeg", "image/png", "image/gif", "image/webp"]
     if file.content_type not in allowed:
         raise HTTPException(status_code=400, detail="Only JPEG, PNG, GIF, WebP allowed!")
-
     # Validate size (5MB)
     content = await file.read()
     if len(content) > 5 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Image too big! Max 5MB.")
-
     # Save file
     ext = mimetypes.guess_extension(file.content_type) or ".jpg"
     filename = f"{uuid.uuid4()}{ext}"
     file_path = UPLOAD_DIR / filename
     with open(file_path, "wb") as f:
         f.write(content)
-
     # User text
     user_text = message.strip() if message and message.strip() else "Describe this image."
-
     try:
         reply = generate_response(
             user_message=user_text,
@@ -170,7 +157,6 @@ async def chat_image(
             language=language,
             image_path=str(file_path)
         )
-
         # Per-persona memory save
         mem = load_persona_memory(mode)
         mem["conversations"].append({
@@ -184,7 +170,6 @@ async def chat_image(
         if len(mem["conversations"]) > 60:
             mem["conversations"] = mem["conversations"][-60:]
         save_persona_memory(mode, mem)
-
         return {
             "reply": reply,
             "image_path": f"uploads/{filename}",
@@ -192,7 +177,6 @@ async def chat_image(
             "mode": mode,
             "display_name": PERSONAS.get(mode, PERSONAS["default"])["name"]
         }
-
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Vision error: {str(e)}")

@@ -8,9 +8,7 @@ from typing import List, Dict, Any, Optional
 import base64
 from PIL import Image
 import io
-
-# NOTE: PERSONAS comes from backend.personas
-from backend.personas import PERSONAS  # ← existing in your repo
+from backend.personas import PERSONAS  # ← YE ADD KIYA
 
 # ─────────────────────────────────────────────
 # ENVIRONMENT & CLIENT SETUP
@@ -20,37 +18,6 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 if not GROQ_API_KEY:
     raise ValueError("GROQ_API_KEY not found! Please check your .env file.")
 client = Groq(api_key=GROQ_API_KEY)
-
-# ─────────────────────────────────────────────
-# APP-LEVEL MEMORY (EXPORTED for main.py)
-# ─────────────────────────────────────────────
-APP_MEMORY_FILE = os.path.join(os.path.dirname(__file__), "memory.json")
-
-def ensure_memory_file():
-    """Ensure top-level memory file exists (used by main.py endpoints)."""
-    if not os.path.exists(APP_MEMORY_FILE):
-        initial = {
-            "user": {"name": None, "interests": [], "notes": {}},
-            "conversations": []
-        }
-        # ensure dir exists (should, but be safe)
-        os.makedirs(os.path.dirname(APP_MEMORY_FILE), exist_ok=True)
-        with open(APP_MEMORY_FILE, "w", encoding="utf-8") as f:
-            json.dump(initial, f, indent=2, ensure_ascii=False)
-
-def load_memory() -> Dict[str, Any]:
-    """Load top-level memory.json used by routes like /memory."""
-    ensure_memory_file()
-    with open(APP_MEMORY_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-def save_memory(data: Dict[str, Any]):
-    """Save top-level memory.json used by routes like /memory/update."""
-    # atomic write pattern to avoid partial writes
-    tmp = APP_MEMORY_FILE + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-    os.replace(tmp, APP_MEMORY_FILE)
 
 # ─────────────────────────────────────────────
 # MEMORY HANDLING PER PERSONA
@@ -73,12 +40,8 @@ def load_persona_memory(persona_key: str) -> Dict:
         return json.load(f)
 
 def save_persona_memory(persona_key: str, data: Dict):
-    # atomic write
-    path = get_memory_path(persona_key)
-    tmp = path + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
+    with open(get_memory_path(persona_key), "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
-    os.replace(tmp, path)
 
 # ─────────────────────────────────────────────
 # IMAGE HANDLING
@@ -121,7 +84,7 @@ def build_messages(user_message: str, persona_key: str = "default", language: st
     recent_conv = mem.get("conversations", [])[-6:]
     recent_texts = " | ".join([f"{c['role']}:{c['msg'][:50]}" for c in recent_conv]) or "First chat."
 
-    system_prompt = PERSONAS.get(persona_key, PERSONAS.get("default", {"system_prompt": "You are a helpful assistant."}))["system_prompt"]
+    system_prompt = PERSONAS.get(persona_key, PERSONAS["default"])["system_prompt"]
 
     messages = [{"role": "system", "content": system_prompt}]
 
@@ -162,7 +125,7 @@ def polish_reply(raw: str, mood: str) -> str:
 # ─────────────────────────────────────────────
 def generate_response(user_message: str, persona_key: str = "default", language: str = "en", image_path: Optional[str] = None) -> str:
     try:
-        if not user_message or not user_message.strip():
+        if not user_message.strip():
             return "Blank message? Classic move 🙄"
 
         mood = detect_mood(user_message)
@@ -193,24 +156,20 @@ def generate_response(user_message: str, persona_key: str = "default", language:
 
             except Exception as e2:
                 print(f"Scout also failed: {e2}")
-                raw = "Arre bhai server thodi si thakan feel kar raha hai... Try again a sec later."
+                raw = "Arre bhai server thodi si thakan feel kar raha hai... 10 second baad try kar na? Main abhi bhi yahin hoon"
 
         # Polish + save memory
         reply = polish_reply(raw, mood)
 
-        # Update persona memory (short preview only)
-        try:
-            mem = load_persona_memory(persona_key)
-            mem["conversations"].append({"role": "user", "msg": user_message[:200]})
-            mem["conversations"].append({"role": "assistant", "msg": reply[:200]})
-            if len(mem["conversations"]) > 60:
-                mem["conversations"] = mem["conversations"][-60:]
-            save_persona_memory(persona_key, mem)
-        except Exception as memerr:
-            print(f"Memory save failed: {memerr}")
+        mem = load_persona_memory(persona_key)
+        mem["conversations"].append({"role": "user", "msg": user_message[:200]})
+        mem["conversations"].append({"role": "assistant", "msg": reply[:200]})
+        if len(mem["conversations"]) > 60:
+            mem["conversations"] = mem["conversations"][-60:]
+        save_persona_memory(persona_key, mem)
 
         return reply
 
     except Exception as e:
         print(f"Global error: {e}")
-        return "Server thak gaya re baba... try again."
+        return "Server thak gaya re baba... 10 sec baad try kar 😴"
