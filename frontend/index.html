@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sanu Sharma - Aisha AI</title>
+<title>Sanu Sharma -  AI</title>
 <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -251,7 +251,7 @@ const ChatApp = () => {
             });
     }, []);
 
-    // Welcome message, reset memory, and update body class when mode changes
+   
     useEffect(() => {
         const name = personaList[selectedMode] || "Aisha";
         setCurrentPersonaName(name);
@@ -261,14 +261,12 @@ const ChatApp = () => {
         // Update body class for persona-specific background
         document.body.className = isDark ? selectedMode : `light ${selectedMode}`;
 
-        // Reset memory on mode switch
         fetch(`https://groqchatbot-xoiv.onrender.com/chat?mode=${selectedMode}&reset=true`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: 'Reset conversation', language: selectedLanguage })
         }).catch(err => console.error('Reset failed:', err));
 
-        // Create particles
         const particlesContainer = document.createElement('div');
         particlesContainer.className = 'particles';
         document.body.appendChild(particlesContainer);
@@ -393,7 +391,7 @@ const ChatApp = () => {
         <div className="chat-container">
             <div className="chat-header">
                 <div>
-                    <div className="header-title">Sanu Sharma - Aisha AI</div>
+                    <div className="header-title">Sanu Sharma - NEURA-X AI</div>
                     <div style={{fontSize: '0.9rem', opacity: 0.8, marginTop: '4px'}}>
                         Currently: <span className="current-persona">{currentPersonaName}</span>
                     </div>
