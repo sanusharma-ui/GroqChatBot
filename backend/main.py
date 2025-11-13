@@ -91,14 +91,18 @@ def memory_update(payload: UpdateUserMeta):
 def list_modes():
     return {"modes": {k: v["name"] for k, v in PERSONAS.items()}}
 
-# --- CHAT ROUTE (supports mode) ---
+# --- CHAT ROUTE (supports mode and reset) ---
 @app.post("/chat")
-def chat(request: ChatRequest, mode: str = "default"):
+def chat(request: ChatRequest, mode: str = "default", reset: bool = False):
     if mode not in PERSONAS:
         mode = "default"
     if not request.message.strip():
         raise HTTPException(status_code=400, detail="Empty message!")
     try:
+        # Reset memory if requested
+        if reset:
+            mem = {"user": {"name": None, "interests": [], "notes": {}}, "conversations": []}
+            save_persona_memory(mode, mem)
         reply = generate_response(
             user_message=request.message,
             persona_key=mode,

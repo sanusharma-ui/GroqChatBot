@@ -202,24 +202,29 @@ const ChatApp = () => {
                     const defaultName = data.modes.default || "Aisha";
                     setCurrentPersonaName(defaultName);
                 } else {
-                    // Fallback
                     setPersonaList(fallbackPersonaList);
                     setCurrentPersonaName("Aisha (Default)");
                 }
             })
             .catch(() => {
-                // Fallback if server down or other error
                 setPersonaList(fallbackPersonaList);
                 setCurrentPersonaName("Aisha (Default)");
             });
     }, []);
 
-    // Welcome message when mode changes
+    // Welcome message and reset memory when mode changes
     useEffect(() => {
         const name = personaList[selectedMode] || "Aisha";
         setCurrentPersonaName(name);
         const welcome = welcomeMessages[selectedMode]?.[selectedLanguage] || welcomeMessages.default.en;
         setMessages([{ type: 'bot', content: welcome, timestamp: new Date().toLocaleTimeString() }]);
+
+        // Reset memory on mode switch
+        fetch(`https://groqchatbot-xoiv.onrender.com/chat?mode=${selectedMode}&reset=true`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: 'Reset conversation', language: selectedLanguage })
+        }).catch(err => console.error('Reset failed:', err));
     }, [selectedMode, personaList, selectedLanguage]);
 
     useEffect(() => {
@@ -249,12 +254,12 @@ const ChatApp = () => {
                 formData.append('language', selectedLanguage);
                 formData.append('mode', selectedMode);
 
-                response = await fetch('https://groqchatbot-xoiv.onrender.com/chat/image', {
+                response = await fetch(`https://groqchatbot-xoiv.onrender.com/chat/image?mode=${selectedMode}&reset=true`, {
                     method: 'POST',
                     body: formData,
                 });
             } else {
-                response = await fetch('https://groqchatbot-xoiv.onrender.com/chat', {
+                response = await fetch(`https://groqchatbot-xoiv.onrender.com/chat?mode=${selectedMode}&reset=true`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
