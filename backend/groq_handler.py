@@ -10,13 +10,18 @@ from PIL import Image
 import io
 from backend.personas import PERSONAS  # ← YE ADD KIYA
 
+# ─────────────────────────────────────────────
+# ENVIRONMENT & CLIENT SETUP
+# ─────────────────────────────────────────────
 load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 if not GROQ_API_KEY:
     raise ValueError("GROQ_API_KEY not found! Please check your .env file.")
 client = Groq(api_key=GROQ_API_KEY)
 
-# MEMORY PER PERSONA
+# ─────────────────────────────────────────────
+# MEMORY HANDLING PER PERSONA
+# ─────────────────────────────────────────────
 def get_memory_path(persona_key: str = "default") -> str:
     memory_dir = os.path.join(os.path.dirname(__file__), "memory")
     os.makedirs(memory_dir, exist_ok=True)
@@ -38,8 +43,10 @@ def save_persona_memory(persona_key: str, data: Dict):
     with open(get_memory_path(persona_key), "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
-# IMAGE HANDLING (same)
-def encode_image_to_base64(image_path: str) -> str:
+# ─────────────────────────────────────────────
+# IMAGE HANDLING
+# ─────────────────────────────────────────────
+def encode_image_to_base64(image_path: str) -> Optional[str]:
     try:
         with Image.open(image_path) as img:
             if img.mode != 'RGB':
@@ -51,18 +58,25 @@ def encode_image_to_base64(image_path: str) -> str:
         print(f"Error encoding image: {e}")
         return None
 
-# MOOD DETECTION (same)
+# ─────────────────────────────────────────────
+# MOOD DETECTION
+# ─────────────────────────────────────────────
 POSITIVE_WORDS = ["good", "great", "awesome", "happy", "cool", "fine", "love", "amazing"]
 NEGATIVE_WORDS = ["sad", "tired", "angry", "upset", "stressed", "bad", "bored"]
+
 def detect_mood(text: str) -> str:
     txt = text.lower()
     pos = sum(1 for w in POSITIVE_WORDS if w in txt)
     neg = sum(1 for w in NEGATIVE_WORDS if w in txt)
-    if pos > neg and pos >= 1: return "positive"
-    if neg > pos and neg >= 1: return "negative"
+    if pos > neg and pos >= 1:
+        return "positive"
+    if neg > pos and neg >= 1:
+        return "negative"
     return "neutral"
 
-# BUILD MESSAGES (modified for persona)
+# ─────────────────────────────────────────────
+# MESSAGE BUILDING (per persona)
+# ─────────────────────────────────────────────
 def build_messages(user_message: str, persona_key: str = "default", language: str = "en", image_path: Optional[str] = None):
     mem = load_persona_memory(persona_key)
     user_name = mem.get("user", {}).get("name") or "buddy"
@@ -95,7 +109,9 @@ def build_messages(user_message: str, persona_key: str = "default", language: st
 
     return messages, get_memory_path(persona_key)
 
-# POLISH REPLY (same)
+# ─────────────────────────────────────────────
+# REPLY POLISHER
+# ─────────────────────────────────────────────
 def polish_reply(raw: str, mood: str) -> str:
     text = re.sub(r"\n{2,}", "\n", raw).strip()
     if "default" in raw.lower() or mood == "negative":
@@ -104,26 +120,47 @@ def polish_reply(raw: str, mood: str) -> str:
         text += " 😎" if mood != "negative" else " ☕"
     return text[:1000]
 
-# MAIN GENERATOR
+# ─────────────────────────────────────────────
+# MAIN RESPONSE GENERATOR
+# ─────────────────────────────────────────────
 def generate_response(user_message: str, persona_key: str = "default", language: str = "en", image_path: Optional[str] = None) -> str:
-    if not user_message.strip():
-        return "Blank message? Classic move 🙄"
-
-    mood = detect_mood(user_message)
-    messages, mem_path = build_messages(user_message, persona_key, language, image_path)
-
     try:
-        chat_completion = client.chat.completions.create(
-            messages=messages,
-            model="llama-3.3-70b-versatile",
-            temperature=0.9,
-            max_tokens=400,
-            top_p=0.9
-        )
-        raw = chat_completion.choices[0].message.content.strip()
+        if not user_message.strip():
+            return "Blank message? Classic move 🙄"
+
+        mood = detect_mood(user_message)
+        messages, mem_path = build_messages(user_message, persona_key, language, image_path)
+
+        try:
+            # Primary: Llama 3.3 70B
+            chat_completion = client.chat.completions.create(
+                messages=messages,
+                model="llama-3.3-70b-versatile",
+                temperature=0.92,
+                max_tokens=450,
+                top_p=0.9
+            )
+            raw = chat_completion.choices[0].message.content.strip()
+
+        except Exception as e1:
+            print(f"70B failed: {e1}")
+            try:
+                # Fallback 1: Llama 4 Scout 17B
+                chat_completion = client.chat.completions.create(
+                    messages=messages,
+                    model="meta-llama/llama-4-scout-17b-16e-instruct",
+                    temperature=0.9,
+                    max_tokens=400
+                )
+                raw = "[Scout mode activated] " + chat_completion.choices[0].message.content.strip()
+
+            except Exception as e2:
+                print(f"Scout also failed: {e2}")
+                raw = "Arre bhai server thodi si thakan feel kar raha hai... 10 second baad try kar na? Main abhi bhi yahin hoon"
+
+        # Polish + save memory
         reply = polish_reply(raw, mood)
 
-        # Save to correct persona memory
         mem = load_persona_memory(persona_key)
         mem["conversations"].append({"role": "user", "msg": user_message[:200]})
         mem["conversations"].append({"role": "assistant", "msg": reply[:200]})
@@ -132,5 +169,7 @@ def generate_response(user_message: str, persona_key: str = "default", language:
         save_persona_memory(persona_key, mem)
 
         return reply
+
     except Exception as e:
+        print(f"Global error: {e}")
         return "Server thak gaya re baba... 10 sec baad try kar 😴"

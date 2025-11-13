@@ -15,7 +15,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from backend.groq_handler import (
     generate_response,
-    LANGUAGES,
     PERSONAS,
     load_memory,
     save_memory,
