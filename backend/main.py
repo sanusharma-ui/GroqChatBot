@@ -10,6 +10,7 @@ import shutil
 from pathlib import Path
 import uuid
 import mimetypes
+import logging
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from backend.groq_handler import (
     generate_response,
@@ -18,6 +19,10 @@ from backend.groq_handler import (
     load_persona_memory,
     save_persona_memory
 )
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Aisha — Friendly AI",
@@ -101,8 +106,10 @@ def chat(request: ChatRequest, mode: str = "default", reset: bool = False):
     try:
         # Reset memory if requested
         if reset:
+            logger.info(f"Resetting memory for persona: {mode}")
             mem = {"user": {"name": None, "interests": [], "notes": {}}, "conversations": []}
             save_persona_memory(mode, mem)
+        logger.info(f"Loading memory for persona: {mode}")
         reply = generate_response(
             user_message=request.message,
             persona_key=mode,

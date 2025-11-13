@@ -8,6 +8,11 @@ import base64
 from PIL import Image
 import io
 from backend.personas import PERSONAS
+import logging
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # ─────────────────────────────────────────────
 # ENVIRONMENT & CLIENT SETUP
@@ -54,7 +59,7 @@ def encode_image_to_base64(image_path: str) -> Optional[str]:
             img.save(buffer, format='JPEG')
             return base64.b64encode(buffer.getvalue()).decode('utf-8')
     except Exception as e:
-        print(f"Error encoding image: {e}")
+        logger.error(f"Error encoding image: {e}")
         return None
 
 # ─────────────────────────────────────────────
@@ -79,8 +84,9 @@ def build_messages(user_message: str, persona_key: str = "default", language: st
     mem = load_persona_memory(persona_key)
     user_name = mem.get("user", {}).get("name") or "buddy"
     interests = ', '.join(mem.get("user", {}).get("interests", []) or []) or "nothing"
-    recent_conv = mem.get("conversations", [])[-6:]
+    recent_conv = mem.get("conversations", [])[-10:]  # Increased to 10 messages for better context
     recent_texts = " | ".join([f"{c['role']}:{c['msg'][:50]}" for c in recent_conv]) or "First chat."
+    logger.info(f"Memory for {persona_key}: {recent_texts}")
     system_prompt = PERSONAS.get(persona_key, PERSONAS["default"])["system_prompt"]
     messages = [{"role": "system", "content": system_prompt}]
     for item in recent_conv:
@@ -122,19 +128,19 @@ def generate_response(user_message: str, persona_key: str = "default", language:
             return "Blank message? Classic move 🙄"
         mood = detect_mood(user_message)
         messages, mem_path = build_messages(user_message, persona_key, language, image_path)
-        print(f"Using persona: {persona_key}, System prompt: {PERSONAS[persona_key]['system_prompt'][:50]}...")  # Debug log
+        logger.info(f"Using persona: {persona_key}, System prompt: {PERSONAS[persona_key]['system_prompt'][:50]}...")
         try:
             # Primary: Llama 3.3 70B
             chat_completion = client.chat.completions.create(
                 messages=messages,
                 model="llama-3.3-70b-versatile",
-                temperature=1.1,  # Upped for more creative, persona-driven responses
+                temperature=1.1,
                 max_tokens=450,
-                top_p=0.95  # Slightly higher for diversity
+                top_p=0.95
             )
             raw = chat_completion.choices[0].message.content.strip()
         except Exception as e1:
-            print(f"70B failed: {e1}")
+            logger.error(f"70B failed: {e1}")
             try:
                 # Fallback 1: Llama 4 Scout 17B
                 chat_completion = client.chat.completions.create(
@@ -145,7 +151,7 @@ def generate_response(user_message: str, persona_key: str = "default", language:
                 )
                 raw = "[Scout mode activated] " + chat_completion.choices[0].message.content.strip()
             except Exception as e2:
-                print(f"Scout also failed: {e2}")
+                logger.error(f"Scout also failed: {e2}")
                 raw = "Arre bhai server thodi si thakan feel kar raha hai... 10 second baad try kar na? Main abhi bhi yahin hoon"
         # Polish + save memory
         reply = polish_reply(raw, mood)
@@ -157,5 +163,5 @@ def generate_response(user_message: str, persona_key: str = "default", language:
         save_persona_memory(persona_key, mem)
         return reply
     except Exception as e:
-        print(f"Global error: {e}")
+        logger.error(f"Global error: {e}")
         return "Server thak gaya re baba... 10 sec baad try kar 😴"
