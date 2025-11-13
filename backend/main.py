@@ -13,15 +13,24 @@ import mimetypes
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from backend.groq_handler import generate_response, LANGUAGES, load_memory, save_memory, ensure_memory_file
+from backend.groq_handler import (
+    generate_response,
+    LANGUAGES,
+    PERSONAS,
+    load_memory,
+    save_memory,
+    ensure_memory_file,
+    load_persona_memory,
+    save_persona_memory
+)
 
 app = FastAPI(
     title="Aisha — Friendly AI",
-    description="Aisha: your warm, caring AI best friend. Uses Groq under the hood and a small memory layer.",
-    version="1.0"
+    description="Aisha: your warm, caring AI best friend. Uses Groq under the hood and persona-based modes.",
+    version="2.0"
 )
 
-# CORS
+# --- CORS CONFIG ---
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -29,17 +38,17 @@ app.add_middleware(
         "http://localhost:8000",
         "http://127.0.0.1:5500",
         "http://127.0.0.1:8000",
-        "https://sonu-frontend.onrender.com", 
+        "https://sonu-frontend.onrender.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-UPLOAD_DIR = Path("/tmp/uploads")  
+UPLOAD_DIR = Path("/tmp/uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-# Request models
+# --- MODELS ---
 class ChatRequest(BaseModel):
     message: str
     language: str = "en"
@@ -53,18 +62,16 @@ class UpdateUserMeta(BaseModel):
     interests: Optional[List[str]] = None
     notes: Optional[Dict[str, str]] = None
 
-# Routes
+# --- ROUTES ---
+
 @app.get("/")
 def home():
     ensure_memory_file()
     return {
         "status": "Aisha is ready!",
-        "hint": "POST /chat or /chat/image"
+        "hint": "POST /chat or /chat/image",
+        "available_modes": list(PERSONAS.keys())
     }
-
-@app.get("/modes")
-def modes():
-    return {"mode": "aisha", "description": "Friendly best-friend style."}
 
 @app.get("/health")
 def health():
@@ -86,23 +93,56 @@ def memory_update(payload: UpdateUserMeta):
     save_memory(mem)
     return {"status": "ok"}
 
+@app.get("/modes/list")
+def list_modes():
+    return {"modes": {k: v["name"] for k, v in PERSONAS.items()}}
+
+# --- CHAT ROUTE (supports mode) ---
 @app.post("/chat")
-def chat(request: ChatRequest):
+def chat(request: ChatRequest, mode: str = "default"):
+    if mode not in PERSONAS:
+        mode = "default"
     if not request.message.strip():
         raise HTTPException(status_code=400, detail="Empty message!")
+
     try:
-        reply = generate_response(request.message, request.language)
-        return {"reply": reply}
+        reply = generate_response(
+            user_message=request.message,
+            persona_key=mode,
+            language=request.language
+        )
+
+        # Per-persona memory
+        mem = load_persona_memory(mode)
+        mem["conversations"].append({
+            "role": "user",
+            "msg": request.message[:200]
+        })
+        mem["conversations"].append({
+            "role": "assistant",
+            "msg": reply[:200]
+        })
+        if len(mem["conversations"]) > 60:
+            mem["conversations"] = mem["conversations"][-60:]
+        save_persona_memory(mode, mem)
+
+        return {
+            "reply": reply,
+            "mode": mode,
+            "display_name": PERSONAS[mode]["name"]
+        }
+
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
 
-# FIXED IMAGE ENDPOINT
+# --- IMAGE CHAT ROUTE (supports mode) ---
 @app.post("/chat/image")
 async def chat_image(
     file: UploadFile = File(...),
     message: Optional[str] = None,
-    language: str = "en"
+    language: str = "en",
+    mode: str = "default"
 ):
     # Validate type
     allowed = ["image/jpeg", "image/png", "image/gif", "image/webp"]
@@ -121,34 +161,42 @@ async def chat_image(
     with open(file_path, "wb") as f:
         f.write(content)
 
-    # TEXT FOR AI
+    # User text
     user_text = message.strip() if message and message.strip() else "Describe this image."
 
     try:
-        
         reply = generate_response(
             user_message=user_text,
+            persona_key=mode,
             language=language,
-            image_path=str(file_path)   # FIXED!
+            image_path=str(file_path)
         )
 
-        # Memory update
-        mem = load_memory()
+        # Per-persona memory save
+        mem = load_persona_memory(mode)
         mem["conversations"].append({
             "role": "user",
-            "msg": f"[Image: {filename}] {user_text}"
+            "msg": f"[Image: {filename}] {user_text}"[:200]
         })
-        save_memory(mem)
+        mem["conversations"].append({
+            "role": "assistant",
+            "msg": reply[:200]
+        })
+        if len(mem["conversations"]) > 60:
+            mem["conversations"] = mem["conversations"][-60:]
+        save_persona_memory(mode, mem)
 
         return {
             "reply": reply,
-            "image_path": f"uploads/{filename}",   
-            "filename": filename
+            "image_path": f"uploads/{filename}",
+            "filename": filename,
+            "mode": mode,
+            "display_name": PERSONAS.get(mode, PERSONAS["default"])["name"]
         }
 
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Vision error: {str(e)}")
 
-# SERVE IMAGES FROM /tmp/uploads
+# --- SERVE IMAGES STATICALLY ---
 app.mount("/uploads", StaticFiles(directory="/tmp/uploads"), name="uploads")
