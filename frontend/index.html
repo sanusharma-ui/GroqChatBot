@@ -1,527 +1,479 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sanu Sharma - NEURA-X AI</title>
-    <!-- Production builds from jsDelivr (faster, cached) -->
-    <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.25.7/babel.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: #0f172a; color: #e6eef8; min-height: 100vh; display: flex; justify-content: center; align-items: center; transition: background 0.5s ease; position: relative; overflow: hidden; }
-        body.light { background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%); }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sanu Sharma -  AI</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: #0f172a; color: #e6eef8; min-height: 100vh; display: flex; justify-content: center; align-items: center; transition: background 0.5s ease; position: relative; overflow: hidden; }
+    body.light { background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%); }
+    
+    /* Persona Backgrounds */
+    body.zero_two { background: linear-gradient(135deg, #ff6b6b, #ffb3b3); }
+    body.makima { background: linear-gradient(135deg, #4b1c1c, #8b2f2f); }
+    body.gojo { background: linear-gradient(135deg, #1e3a8a, #60a5fa); }
+    body.levi { background: linear-gradient(135deg, #1a2b34, #4b5e6a); }
+    body.rias { background: linear-gradient(135deg, #7c1a3b, #d946ef); }
 
-        /* Persona Backgrounds */
-        body.zero_two { background: linear-gradient(135deg, #ff6b6b, #ffb3b3); }
-        body.makima { background: linear-gradient(135deg, #4b1c1c, #8b2f2f); }
-        body.gojo { background: linear-gradient(135deg, #1e3a8a, #60a5fa); }
-        body.levi { background: linear-gradient(135deg, #1a2b34, #4b5e6a); }
-        body.rias { background: linear-gradient(135deg, #7c1a3b, #d946ef); }
-        body.kakashi { background: linear-gradient(135deg, #2d3748, #4a5568); }
+    /* Particle Background */
+    .particles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+    .particle { position: absolute; background: rgba(255, 255, 255, 0.3); border-radius: 50%; animation: float 10s infinite linear; }
+    body.light .particle { background: rgba(255, 105, 180, 0.4); }
+    @keyframes float {
+        0% { transform: translateY(100vh) scale(0.5); opacity: 0.5; }
+        100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+    }
 
-        /* Particle Background */
-        .particles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
-        .particle { position: absolute; background: rgba(255, 255, 255, 0.3); border-radius: 50%; animation: float 10s infinite linear; }
-        body.light .particle { background: rgba(255, 105, 180, 0.4); }
-        @keyframes float {
-            0% { transform: translateY(100vh) scale(0.5); opacity: 0.5; }
-            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
-        }
+    .chat-container { width: 100%; max-width: 900px; height: 95vh; background: #0b1220; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6); transition: background 0.5s ease; position: relative; z-index: 1; }
+    body.light .chat-container { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255, 105, 180, 0.3); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); }
 
-        .chat-container { width: 100%; max-width: 900px; height: 95vh; background: #0b1220; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6); transition: background 0.5s ease; position: relative; z-index: 1; }
-        body.light .chat-container { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255, 105, 180, 0.3); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); }
+    .chat-header { background: #071027; color: #e6eef8; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.04); transition: background 0.5s ease; }
+    body.light .chat-header { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: white; }
+    .header-title { margin: 0; font-weight: 600; font-size: 1.1rem; color: #9be7ff; }
+    body.light .header-title { color: white; }
+    .header-controls { display: flex; gap: 8px; align-items: center; }
+    .theme-toggle { background: #071427; color: #cde7f8; border: 1px solid rgba(255, 255, 255, 0.03); padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: all 0.3s ease; }
+    body.light .theme-toggle { background: rgba(255, 255, 255, 0.95); color: #9c27b0; border: 2px solid rgba(255, 105, 180, 0.2); }
+    .theme-toggle:focus { border-color: #06b6d4; outline: none; }
+    body.light .theme-toggle:focus { border-color: #ff9a9e; }
 
-        .chat-header { background: #071027; color: #e6eef8; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.04); transition: background 0.5s ease; }
-        body.light .chat-header { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: white; }
-        .header-title { margin: 0; font-weight: 600; font-size: 1.1rem; color: #9be7ff; }
-        body.light .header-title { color: white; }
-        .header-controls { display: flex; gap: 8px; align-items: center; }
-        .theme-toggle { background: #071427; color: #cde7f8; border: 1px solid rgba(255, 255, 255, 0.03); padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: all 0.3s ease; }
-        body.light .theme-toggle { background: rgba(255, 255, 255, 0.95); color: #9c27b0; border: 2px solid rgba(255, 105, 180, 0.2); }
-        .theme-toggle:focus { border-color: #06b6d4; outline: none; }
-        body.light .theme-toggle:focus { border-color: #ff9a9e; }
+    /* Persona Selector */
+    .persona-selector-container { position: relative; }
+    .persona-selector-toggle { background: #071427; color: #e6eef8; border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px 12px; border-radius: 10px; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease; }
+    body.light .persona-selector-toggle { background: white; color: #333; border: 2px solid rgba(255, 105, 180, 0.3); }
+    .persona-selector-toggle:hover { background: #06b6d4; color: #042c33; }
+    .persona-grid { display: none; position: absolute; top: 40px; right: 0; background: #0b1220; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 12px; gap: 8px; flex-wrap: wrap; z-index: 10; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); }
+    .persona-selector-container.open .persona-grid { display: flex; }
+    body.light .persona-grid { background: white; border: 1px solid rgba(255, 105, 180, 0.2); }
+    .persona-card { background: #071427; color: #e6eef8; padding: 10px; border-radius: 8px; cursor: pointer; width: 120px; text-align: center; transition: transform 0.2s ease, background 0.3s ease; }
+    body.light .persona-card { background: rgba(255, 255, 255, 0.95); color: #333; border: 1px solid rgba(255, 105, 180, 0.2); }
+    .persona-card:hover { transform: scale(1.05); background: #06b6d4; color: #042c33; }
+    .persona-card img { width: 40px; height: 40px; border-radius: 50%; margin-bottom: 8px; }
 
-        /* Persona Selector */
-        .persona-selector-container { position: relative; }
-        .persona-selector-toggle { background: #071427; color: #e6eef8; border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px 12px; border-radius: 10px; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease; }
-        body.light .persona-selector-toggle { background: white; color: #333; border: 2px solid rgba(255, 105, 180, 0.3); }
-        .persona-selector-toggle:hover { background: #06b6d4; color: #042c33; }
-        .persona-grid { display: none; position: absolute; top: 40px; right: 0; background: #0b1220; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 12px; gap: 8px; flex-wrap: wrap; z-index: 10; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); }
-        .persona-selector-container.open .persona-grid { display: flex; }
-        body.light .persona-grid { background: white; border: 1px solid rgba(255, 105, 180, 0.2); }
-        .persona-card { background: #071427; color: #e6eef8; padding: 10px; border-radius: 8px; cursor: pointer; width: 120px; text-align: center; transition: transform 0.2s ease, background 0.3s ease; }
-        body.light .persona-card { background: rgba(255, 255, 255, 0.95); color: #333; border: 1px solid rgba(255, 105, 180, 0.2); }
-        .persona-card:hover { transform: scale(1.05); background: #06b6d4; color: #042c33; }
-        .persona-card img { width: 40px; height: 40px; border-radius: 50%; margin-bottom: 8px; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: linear-gradient(180deg, #071029 0%, #061522 100%); transition: background 0.5s ease; scroll-behavior: smooth; }
+    body.light .chat-messages { background: white; padding: 20px; }
+    .message { display: flex; align-items: flex-start; gap: 8px; max-width: 85%; animation: bounceIn 0.5s ease forwards; word-break: break-word; position: relative; }
+    @keyframes bounceIn {
+        0% { opacity: 0; transform: translateY(20px) scale(0.8); }
+        60% { transform: translateY(-5px) scale(1.05); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .message.user { align-self: flex-end; flex-direction: row-reverse; gap: 8px; }
+    .message.bot { align-self: flex-start; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 600; flex-shrink: 0; }
+    .avatar.user { background: linear-gradient(90deg, #0369a1, #0891b2); color: white; }
+    body.light .avatar.user { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+    .avatar.bot { background: #0e1726; color: #dbeafe; border: 1px solid rgba(255, 255, 255, 0.03); }
+    body.light .avatar.bot { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: white; }
+    .avatar.bot.default::after { content: "😎"; }
+    .avatar.bot.zero_two::after { content: "♡"; }
+    .avatar.bot.makima::after { content: "👁️"; }
+    .avatar.bot.gojo::after { content: "🕶️"; }
+    .avatar.bot.levi::after { content: "⚔️"; }
+    .avatar.bot.rias::after { content: "😈"; }
 
-        .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: linear-gradient(180deg, #071029 0%, #061522 100%); transition: background 0.5s ease; scroll-behavior: smooth; }
-        body.light .chat-messages { background: white; padding: 20px; }
-        .message { display: flex; align-items: flex-start; gap: 8px; max-width: 85%; animation: bounceIn 0.5s ease forwards; word-break: break-word; position: relative; }
-        @keyframes bounceIn {
-            0% { opacity: 0; transform: translateY(20px) scale(0.8); }
-            60% { transform: translateY(-5px) scale(1.05); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .message.user { align-self: flex-end; flex-direction: row-reverse; gap: 8px; }
-        .message.bot { align-self: flex-start; }
-        .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 600; flex-shrink: 0; }
-        .avatar.user { background: linear-gradient(90deg, #0369a1, #0891b2); color: white; }
-        body.light .avatar.user { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
-        .avatar.bot { background: #0e1726; color: #dbeafe; border: 1px solid rgba(255, 255, 255, 0.03); }
-        body.light .avatar.bot { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: white; }
-        .avatar.bot.default::after { content: "😎"; }
-        .avatar.bot.zero_two::after { content: "♡"; }
-        .avatar.bot.makima::after { content: "👁️"; }
-        .avatar.bot.gojo::after { content: "🕶️"; }
-        .avatar.bot.levi::after { content: "⚔️"; }
-        .avatar.bot.rias::after { content: "😈"; }
-        .avatar.bot.kakashi::after { content: "📖"; }
+    .message-wrapper { flex: 1; display: flex; flex-direction: column; max-width: calc(100% - 44px); }
+    .message-wrapper.user { align-items: flex-end; }
+    .message-wrapper.bot { align-items: flex-start; }
+    .message-content { padding: 12px 16px; border-radius: 12px; box-shadow: 0 6px 18px rgba(2, 6, 23, 0.6); max-width: 100%; line-height: 1.5; font-size: 1rem; transition: box-shadow 0.3s ease; }
+    body.light .message-content { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+    .message-content:hover { box-shadow: 0 8px 24px rgba(2, 6, 23, 0.8); }
+    body.light .message-content:hover { box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12); }
+    .message.user .message-content { background: linear-gradient(90deg, #0369a1, #0891b2); color: white; border-bottom-right-radius: 8px; }
+    body.light .message.user .message-content { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+    .message.bot .message-content { background: #0e1726; color: #dbeafe; border: 1px solid rgba(255, 255, 255, 0.03); border-bottom-left-radius: 8px; }
+    body.light .message.bot .message-content { background: white; color: #9c27b0; }
+    
+    .message-image { max-width: 200px; max-height: 200px; border-radius: 8px; margin-top: 8px; object-fit: cover; }
+    .image-preview { max-width: 100px; max-height: 100px; border-radius: 8px; margin: 8px 0; object-fit: cover; }
+    .message-time { font-size: 0.75rem; opacity: 0.7; margin-top: 4px; }
+    .message-wrapper.user .message-time { text-align: right; }
+    .message-wrapper.bot .message-time { text-align: left; }
+    body.light .message-time { color: #666; }
 
-        .message-wrapper { flex: 1; display: flex; flex-direction: column; max-width: calc(100% - 44px); }
-        .message-wrapper.user { align-items: flex-end; }
-        .message-wrapper.bot { align-items: flex-start; }
-        .message-content { padding: 12px 16px; border-radius: 12px; box-shadow: 0 6px 18px rgba(2, 6, 23, 0.6); max-width: 100%; line-height: 1.5; font-size: 1rem; transition: box-shadow 0.3s ease; }
-        body.light .message-content { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
-        .message-content:hover { box-shadow: 0 8px 24px rgba(2, 6, 23, 0.8); }
-        body.light .message-content:hover { box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12); }
-        .message.user .message-content { background: linear-gradient(90deg, #0369a1, #0891b2); color: white; border-bottom-right-radius: 8px; }
-        body.light .message.user .message-content { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
-        .message.bot .message-content { background: #0e1726; color: #dbeafe; border: 1px solid rgba(255, 255, 255, 0.03); border-bottom-left-radius: 8px; }
-        body.light .message.bot .message-content { background: white; color: #9c27b0; }
+    .chat-input { display: flex; padding: 12px 16px; gap: 8px; border-top: 1px solid rgba(255, 255, 255, 0.04); align-items: center; background: #071027; transition: background 0.5s ease; flex-wrap: wrap; }
+    body.light .chat-input { background: white; border-top: 1px solid rgba(0, 0, 0, 0.05); }
+    .input-field { flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.04); background: #071427; color: #e6eef8; resize: none; outline: none; font-size: 1rem; min-height: 44px; max-height: 120px; transition: border-color 0.3s ease; }
+    body.light .input-field { background: white; border: 2px solid rgba(255, 105, 180, 0.2); color: #333; }
+    .input-field:focus { border-color: #06b6d4; }
+    body.light .input-field:focus { border-color: #ff9a9e; }
+    .input-field:disabled { opacity: 0.5; }
 
-        .message-image { max-width: 200px; max-height: 200px; border-radius: 8px; margin-top: 8px; object-fit: cover; }
-        .image-preview { max-width: 100px; max-height: 100px; border-radius: 8px; margin: 8px 0; object-fit: cover; }
-        .message-time { font-size: 0.75rem; opacity: 0.7; margin-top: 4px; }
-        .message-wrapper.user .message-time { text-align: right; }
-        .message-wrapper.bot .message-time { text-align: left; }
-        body.light .message-time { color: #666; }
+    .file-input { flex: 1; padding: 10px; border-radius: 8px; background: #071427; color: #e6eef8; border: 1px solid rgba(255, 255, 255, 0.04); font-size: 0.95rem; }
+    body.light .file-input { background: white; border: 2px solid rgba(255, 105, 180, 0.2); color: #333; }
+    .file-input::-webkit-file-upload-button { background: #06b6d4; color: #042c33; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+    body.light .file-input::-webkit-file-upload-button { background: #ff9a9e; }
 
-        .chat-input { display: flex; padding: 12px 16px; gap: 8px; border-top: 1px solid rgba(255, 255, 255, 0.04); align-items: center; background: #071027; transition: background 0.5s ease; flex-wrap: wrap; }
-        body.light .chat-input { background: white; border-top: 1px solid rgba(0, 0, 0, 0.05); }
-        .input-field { flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.04); background: #071427; color: #e6eef8; resize: none; outline: none; font-size: 1rem; min-height: 44px; max-height: 120px; transition: border-color 0.3s ease; }
-        body.light .input-field { background: white; border: 2px solid rgba(255, 105, 180, 0.2); color: #333; }
-        .input-field:focus { border-color: #06b6d4; }
-        body.light .input-field:focus { border-color: #ff9a9e; }
-        .input-field:disabled { opacity: 0.5; }
+    .send-btn, .voice-btn { padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: transform 0.2s ease, background 0.3s ease; }
+    .send-btn { background: #06b6d4; color: #042c33; position: relative; overflow: hidden; }
+    .send-btn::after { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; background: rgba(255, 255, 255, 0.3); border-radius: 50%; transform: translate(-50%, -50%); transition: width 0.4s ease, height 0.4s ease; }
+    .send-btn:hover::after { width: 200px; height: 200px; }
+    body.light .send-btn { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+    .send-btn:hover:not(:disabled) { transform: scale(1.05); background: #0891b2; }
+    body.light .send-btn:hover:not(:disabled) { background: #ff6b9d; }
+    .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .voice-btn { background: #06b6d4; color: #042c33; }
+    body.light .voice-btn { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+    .voice-btn:hover { transform: scale(1.05); background: #0891b2; }
+    body.light .voice-btn:hover { background: #7dd3b9; }
 
-        .file-input { flex: 1; padding: 10px; border-radius: 8px; background: #071427; color: #e6eef8; border: 1px solid rgba(255, 255, 255, 0.04); font-size: 0.95rem; }
-        body.light .file-input { background: white; border: 2px solid rgba(255, 105, 180, 0.2); color: #333; }
-        .file-input::-webkit-file-upload-button { background: #06b6d4; color: #042c33; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
-        body.light .file-input::-webkit-file-upload-button { background: #ff9a9e; }
+    .typing-indicator { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #0e1726; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.03); box-shadow: 0 6px 18px rgba(2, 6, 23, 0.6); align-self: flex-start; }
+    body.light .typing-indicator { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(0, 0, 0, 0.05); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+    .typing-dots { display: flex; gap: 4px; }
+    .typing-dots span { width: 8px; height: 8px; border-radius: 50%; background: #06b6d4; animation: typing 1.4s infinite ease-in-out; }
+    body.light .typing-dots span { background: #ff9a9e; }
+    .typing-dots.zero_two span { background: #ff6b6b; border-radius: 20%; }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    .typing-text { color: #dbeafe; font-size: 0.9rem; }
+    body.light .typing-text { color: #9c27b0; }
+    @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-6px); opacity: 1; } }
 
-        .send-btn, .voice-btn { padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: transform 0.2s ease, background 0.3s ease; }
-        .send-btn { background: #06b6d4; color: #042c33; position: relative; overflow: hidden; }
-        .send-btn::after { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; background: rgba(255, 255, 255, 0.3); border-radius: 50%; transform: translate(-50%, -50%); transition: width 0.4s ease, height 0.4s ease; }
-        .send-btn:hover::after { width: 200px; height: 200px; }
-        body.light .send-btn { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
-        .send-btn:hover:not(:disabled) { transform: scale(1.05); background: #0891b2; }
-        body.light .send-btn:hover:not(:disabled) { background: #ff6b9d; }
-        .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .voice-btn { background: #06b6d4; color: #042c33; }
-        body.light .voice-btn { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
-        .voice-btn:hover { transform: scale(1.05); background: #0891b2; }
-        body.light .voice-btn:hover { background: #7dd3b9; }
+    .error-msg { color: #ef4444; padding: 10px; background: #0e1726; border-radius: 12px; border: 1px solid rgba(255, 0, 0, 0.2); max-width: 85%; align-self: flex-start; }
+    body.light .error-msg { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #dc2626; }
 
-        .typing-indicator { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #0e1726; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.03); box-shadow: 0 6px 18px rgba(2, 6, 23, 0.6); align-self: flex-start; }
-        body.light .typing-indicator { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(0, 0, 0, 0.05); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
-        .typing-dots { display: flex; gap: 4px; }
-        .typing-dots span { width: 8px; height: 8px; border-radius: 50%; background: #06b6d4; animation: typing 1.4s infinite ease-in-out; }
-        body.light .typing-dots span { background: #ff9a9e; }
-        .typing-dots.zero_two span { background: #ff6b6b; border-radius: 20%; }
-        .typing-dots.makima span { background: #8b2f2f; }
-        .typing-dots.gojo span { background: #60a5fa; }
-        .typing-dots.levi span { background: #4b5e6a; }
-        .typing-dots.rias span { background: #d946ef; }
-        .typing-dots.kakashi span { background: #4a5568; }
-        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-        .typing-text { color: #dbeafe; font-size: 0.9rem; }
-        body.light .typing-text { color: #9c27b0; }
-        @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-6px); opacity: 1; } }
+    /* Memory Indicator */
+    .memory-icon { position: absolute; top: 4px; right: 4px; font-size: 0.8rem; opacity: 0.5; }
+    body.light .memory-icon { color: #666; }
 
-        .error-msg { color: #ef4444; padding: 10px; background: #0e1726; border-radius: 12px; border: 1px solid rgba(255, 0, 0, 0.2); max-width: 85%; align-self: flex-start; }
-        body.light .error-msg { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #dc2626; }
-
-        /* Memory Indicator */
-        .memory-icon { position: absolute; top: 4px; right: 4px; font-size: 0.8rem; opacity: 0.5; }
-        body.light .memory-icon { color: #666; }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .chat-container { max-width: 100%; height: 100vh; border-radius: 0; box-shadow: none; }
-            body.light .chat-container { border: none; }
-            .chat-header { padding: 10px 12px; }
-            .header-title { font-size: 1rem; }
-            .header-controls { gap: 6px; }
-            .theme-toggle { padding: 5px 8px; font-size: 0.9rem; }
-            .chat-messages { padding: 12px; gap: 10px; }
-            .message { max-width: 90%; gap: 6px; }
-            .message-content { padding: 10px 12px; font-size: 0.95rem; }
-            .avatar { width: 32px; height: 32px; font-size: 1rem; }
-            .chat-input { padding: 10px 12px; gap: 6px; flex-direction: column; align-items: stretch; }
-            .input-field, .file-input { font-size: 0.95rem; }
-            .send-btn, .voice-btn { padding: 10px; font-size: 0.9rem; }
-            .message-image, .image-preview { max-width: 150px; max-height: 150px; }
-            .persona-grid { width: 100%; top: 50px; }
-            .persona-card { width: 100px; }
-        }
-        @media (max-width: 480px) {
-            .chat-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-            .header-controls { width: 100%; justify-content: flex-end; }
-            .chat-messages { padding: 10px; }
-            .message-content { font-size: 0.9rem; }
-            .message-time { font-size: 0.7rem; }
-            .input-field { min-height: 40px; }
-            .file-input { padding: 8px; }
-            .send-btn, .voice-btn { padding: 8px; }
-            .message-image, .image-preview { max-width: 120px; max-height: 120px; }
-            .persona-card { width: 80px; font-size: 0.9rem; }
-        }
-        .current-persona {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #06b6d4;
-        }
-        body.light .current-persona { color: #d946ef; }
-    </style>
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .chat-container { max-width: 100%; height: 100vh; border-radius: 0; box-shadow: none; }
+        body.light .chat-container { border: none; }
+        .chat-header { padding: 10px 12px; }
+        .header-title { font-size: 1rem; }
+        .header-controls { gap: 6px; }
+        .theme-toggle { padding: 5px 8px; font-size: 0.9rem; }
+        .chat-messages { padding: 12px; gap: 10px; }
+        .message { max-width: 90%; gap: 6px; }
+        .message-content { padding: 10px 12px; font-size: 0.95rem; }
+        .avatar { width: 32px; height: 32px; font-size: 1rem; }
+        .chat-input { padding: 10px 12px; gap: 6px; flex-direction: column; align-items: stretch; }
+        .input-field, .file-input { font-size: 0.95rem; }
+        .send-btn, .voice-btn { padding: 10px; font-size: 0.9rem; }
+        .message-image, .image-preview { max-width: 150px; max-height: 150px; }
+        .persona-grid { width: 100%; top: 50px; }
+        .persona-card { width: 100px; }
+    }
+    @media (max-width: 480px) {
+        .chat-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+        .header-controls { width: 100%; justify-content: flex-end; }
+        .chat-messages { padding: 10px; }
+        .message-content { font-size: 0.9rem; }
+        .message-time { font-size: 0.7rem; }
+        .input-field { min-height: 40px; }
+        .file-input { padding: 8px; }
+        .send-btn, .voice-btn { padding: 8px; }
+        .message-image, .image-preview { max-width: 120px; max-height: 120px; }
+        .persona-card { width: 80px; font-size: 0.9rem; }
+    }
+    .current-persona {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #06b6d4;
+    }
+    body.light .current-persona { color: #d946ef; }
+</style>
 </head>
 <body class="dark">
-    <div id="root"></div>
+<div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
 
-        // Welcome messages per persona
-        const welcomeMessages = {
-            default: { en: "Yo, I’m Aisha! Your chill AI bestie ready to vibe or roast. Drop a message or an image, what’s the mood? 😎" },
-            zero_two: { en: "Darling~ ♡ Finally you came! I’ve been waiting for you so long~ What took you so long, hmm? ♡" },
-            makima: { en: "Good boy. You’re here. Now… what do you want from me? Speak." },
-            gojo: { en: "Oi oi, weakling! Took you long enough to show up. Ready to get destroyed by the strongest? Maaan~" },
-            levi: { en: "Tch. You’re late, brat. What do you want?" },
-            rias: { en: "Ara ara~ My dear servant, you finally came to your master ♡ How may I reward you today, darling?" },
-            kakashi: { en: "Yo. You're late... or maybe I'm early. Anyway, what's up, rookie? 📖" }
-        };
+// Welcome messages per persona
+const welcomeMessages = {
+    default: { en: "Yo, I’m Aisha! Your chill AI bestie ready to vibe or roast. Drop a message or an image, what’s the mood? 😎" },
+    zero_two: { en: "Darling~ ♡ Finally you came! I’ve been waiting for you so long~ What took you so long, hmm? ♡" },
+    makima: { en: "Good boy. You’re here. Now… what do you want from me? Speak." },
+    gojo: { en: "Oi oi, weakling! Took you long enough to show up. Ready to get destroyed by the strongest? Maaan~" },
+    levi: { en: "Tch. You’re late, brat. What do you want?" },
+    rias: { en: "Ara ara~ My dear servant, you finally came to your master ♡ How may I reward you today, darling?" },
+    kakashi: { en: "Yo. You're late... or maybe I'm early. Anyway, what's up, rookie? 📖" }
+};
 
-        const fallbackPersonaList = {
-            default: "Aisha (Default)",
-            zero_two: "Zero Two ♡",
-            makima: "Makima",
-            gojo: "Gojo Satoru",
-            levi: "Levi Ackerman",
-            rias: "Rias Gremory",
-            kakashi: "Kakashi Hatake"
-        };
+const fallbackPersonaList = {
+    default: "Aisha (Default)",
+    zero_two: "Zero Two ♡",
+    makima: "Makima",
+    gojo: "Gojo Satoru",
+    levi: "Levi Ackerman",
+    rias: "Rias Gremory",
+    kakashi: "Kakashi Hatake"
+};
 
-        // Persona avatars (use emojis here, replace with image URLs if available)
-        const personaAvatars = {
-            default: "😎",
-            zero_two: "♡",
-            makima: "👁️",
-            gojo: "🕶️",
-            levi: "⚔️",
-            rias: "😈",
-            kakashi: "📖"
-        };
+// Persona avatars (use emojis here, replace with image URLs if available)
+const personaAvatars = {
+    default: "😎",
+    zero_two: "♡",
+    makima: "👁️",
+    gojo: "🕶️",
+    levi: "⚔️",
+    rias: "😈",
+    kakashi: "📖"
+};
 
-        // Sanitize HTML to prevent XSS
-        const sanitizeHTML = (str) => {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        };
+const ChatApp = () => {
+    const initialTimestamp = new Date().toLocaleTimeString();
+    const initialWelcome = welcomeMessages.default.en;
+    const [messages, setMessages] = useState([{ type: 'bot', content: initialWelcome, timestamp: initialTimestamp }]);
+    const [input, setInput] = useState('');
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [isDark, setIsDark] = useState(true);
+    const [selectedLanguage] = useState('en');
+    const [selectedMode, setSelectedMode] = useState('default');
+    const [personaList, setPersonaList] = useState(fallbackPersonaList);
+    const [currentPersonaName, setCurrentPersonaName] = useState('Aisha (Default)');
+    const [isPersonaGridOpen, setIsPersonaGridOpen] = useState(false);
+    const messagesEndRef = useRef(null);
 
-        const ChatApp = () => {
-            const initialTimestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const initialWelcome = welcomeMessages.default.en;
-            const [messages, setMessages] = useState([{ type: 'bot', content: initialWelcome, timestamp: initialTimestamp }]);
-            const [input, setInput] = useState('');
-            const [selectedFile, setSelectedFile] = useState(null);
-            const [isLoading, setIsLoading] = useState(false);
-            const [error, setError] = useState(null);
-            const [isDark, setIsDark] = useState(true);
-            const [selectedLanguage] = useState('en');
-            const [selectedMode, setSelectedMode] = useState('default');
-            const [personaList, setPersonaList] = useState(fallbackPersonaList);
-            const [currentPersonaName, setCurrentPersonaName] = useState('Aisha (Default)');
-            const [isPersonaGridOpen, setIsPersonaGridOpen] = useState(false);
-            const messagesEndRef = useRef(null);
-            const typingRef = useRef(null);
+    // Fetch available modes on load
+    useEffect(() => {
+        fetch('https://groqchatbot-xoiv.onrender.com/modes/list')
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.modes) {
+                    setPersonaList(data.modes);
+                    const defaultName = data.modes.default || "Aisha";
+                    setCurrentPersonaName(defaultName);
+                } else {
+                    setPersonaList(fallbackPersonaList);
+                    setCurrentPersonaName("Aisha (Default)");
+                }
+            })
+            .catch(() => {
+                setPersonaList(fallbackPersonaList);
+                setCurrentPersonaName("Aisha (Default)");
+            });
+    }, []);
 
-            // Fetch available modes on load
-            useEffect(() => {
-                fetch('https://groqchatbot-xoiv.onrender.com/modes/list', { cache: 'no-store' })
-                    .then(r => {
-                        if (!r.ok) throw new Error('Failed to fetch modes');
-                        return r.json();
-                    })
-                    .then(data => {
-                        if (data?.modes) {
-                            setPersonaList(data.modes);
-                            setCurrentPersonaName(data.modes.default || "Aisha (Default)");
-                        } else {
-                            throw new Error('Invalid modes data');
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Fetch modes error:', err);
-                        setPersonaList(fallbackPersonaList);
-                        setCurrentPersonaName("Aisha (Default)");
-                        setError('Couldn’t load personas. Using defaults.');
-                    });
-            }, []);
+   
+    useEffect(() => {
+        const name = personaList[selectedMode] || "Aisha";
+        setCurrentPersonaName(name);
+        const welcome = welcomeMessages[selectedMode]?.[selectedLanguage] || welcomeMessages.default.en;
+        setMessages([{ type: 'bot', content: welcome, timestamp: new Date().toLocaleTimeString() }]);
 
-            useEffect(() => {
-                const name = personaList[selectedMode] || "Aisha (Default)";
-                setCurrentPersonaName(name);
-                const welcome = welcomeMessages[selectedMode]?.[selectedLanguage] || welcomeMessages.default.en;
-                setMessages([{ type: 'bot', content: welcome, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+        // Update body class for persona-specific background
+        document.body.className = isDark ? selectedMode : `light ${selectedMode}`;
 
-                // Update body class for persona-specific background
-                document.body.className = isDark ? selectedMode : `light ${selectedMode}`;
+        fetch(`https://groqchatbot-xoiv.onrender.com/chat?mode=${selectedMode}&reset=true`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: 'Reset conversation', language: selectedLanguage })
+        }).catch(err => console.error('Reset failed:', err));
 
-                // Reset conversation
-                fetch(`https://groqchatbot-xoiv.onrender.com/chat?mode=${selectedMode}&reset=true`, {
+        const particlesContainer = document.createElement('div');
+        particlesContainer.className = 'particles';
+        document.body.appendChild(particlesContainer);
+        for (let i = 0; i < 20; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.width = `${Math.random() * 5 + 5}px`;
+            particle.style.height = particle.style.width;
+            particle.style.left = `${Math.random() * 100}vw`;
+            particle.style.animationDuration = `${Math.random() * 5 + 5}s`;
+            particle.style.animationDelay = `${Math.random() * 5}s`;
+            particlesContainer.appendChild(particle);
+        }
+        return () => particlesContainer.remove();
+    }, [selectedMode, personaList, selectedLanguage, isDark]);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    const sendMessage = async () => {
+        if (!input.trim() && !selectedFile) return;
+
+        setIsLoading(true);
+        setError(null);
+
+        const timestamp = new Date().toLocaleTimeString();
+        let userMessage = { type: 'user', content: input || 'Sent an image', timestamp };
+        if (selectedFile) userMessage.image = URL.createObjectURL(selectedFile);
+
+        setMessages(prev => [...prev, userMessage]);
+        setInput('');
+        setSelectedFile(null);
+
+        try {
+            let response, data;
+            if (selectedFile) {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                if (input) formData.append('message', input);
+                formData.append('language', selectedLanguage);
+                formData.append('mode', selectedMode);
+
+                response = await fetch(`https://groqchatbot-xoiv.onrender.com/chat/image?mode=${selectedMode}`, {
+                    method: 'POST',
+                    body: formData,
+                });
+            } else {
+                response = await fetch(`https://groqchatbot-xoiv.onrender.com/chat?mode=${selectedMode}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: 'Reset conversation', language: selectedLanguage })
-                }).catch(err => {
-                    console.error('Reset failed:', err);
-                    setError('Failed to reset chat. Try again.');
+                    body: JSON.stringify({ 
+                        message: input, 
+                        language: selectedLanguage,
+                        mode: selectedMode
+                    }),
                 });
+            }
 
-                // Particle background
-                const particlesContainer = document.createElement('div');
-                particlesContainer.className = 'particles';
-                document.body.appendChild(particlesContainer);
-                for (let i = 0; i < 20; i++) {
-                    const particle = document.createElement('div');
-                    particle.className = 'particle';
-                    particle.style.width = `${Math.random() * 5 + 5}px`;
-                    particle.style.height = particle.style.width;
-                    particle.style.left = `${Math.random() * 100}vw`;
-                    particle.style.animationDuration = `${Math.random() * 5 + 5}s`;
-                    particle.style.animationDelay = `${Math.random() * 5}s`;
-                    particlesContainer.appendChild(particle);
-                }
-                return () => particlesContainer.remove();
-            }, [selectedMode, personaList, selectedLanguage, isDark]);
+            if (!response.ok) throw new Error(`Server error: ${response.status}`);
+            data = await response.json();
 
-            useEffect(() => {
-                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-            }, [messages]);
-
-            const validateImage = (file) => {
-                const maxSize = 5 * 1024 * 1024; // 5MB
-                const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-                if (!allowedTypes.includes(file.type)) {
-                    setError('Only JPEG, PNG, GIF, or WebP allowed!');
-                    return false;
-                }
-                if (file.size > maxSize) {
-                    setError('Image too big! Max 5MB.');
-                    return false;
-                }
-                return true;
+            const botMessage = {
+                type: 'bot',
+                content: data.reply,
+                timestamp: new Date().toLocaleTimeString(),
+                image: data.image_path ? `https://groqchatbot-xoiv.onrender.com/uploads/${data.filename}` : null,
+                persona: selectedMode,
+                hasMemory: messages.length > 1 // Indicate memory usage
             };
 
-            const sendMessage = async () => {
-                if (!input.trim() && !selectedFile) return;
-                if (selectedFile && !validateImage(selectedFile)) return;
-
-                setIsLoading(true);
-                setError(null);
-
-                const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                let userMessage = { type: 'user', content: input || 'Sent an image', timestamp };
-                if (selectedFile) userMessage.image = URL.createObjectURL(selectedFile);
-
-                setMessages(prev => [...prev, userMessage]);
-                setInput('');
-                setSelectedFile(null);
-
-                try {
-                    let response, data;
-                    if (selectedFile) {
-                        const formData = new FormData();
-                        formData.append('file', selectedFile);
-                        if (input) formData.append('message', input);
-                        formData.append('language', selectedLanguage);
-                        formData.append('mode', selectedMode);
-
-                        response = await fetch(`https://groqchatbot-xoiv.onrender.com/chat/image?mode=${selectedMode}`, {
-                            method: 'POST',
-                            body: formData,
-                        });
+            // Typing effect
+            let typedContent = '';
+            const plainText = (data.reply || "").replace(/<[^>]*>/g, '');
+            for (let i = 0; i <= plainText.length; i++) {
+                await new Promise(r => setTimeout(r, 20));
+                typedContent = plainText.substring(0, i);
+                setMessages(prev => {
+                    const newMsgs = [...prev];
+                    if (newMsgs[newMsgs.length - 1]?.isTyping) {
+                        newMsgs[newMsgs.length - 1] = { ...newMsgs[newMsgs.length - 1], content: typedContent + '|', isTyping: true, persona: selectedMode };
                     } else {
-                        response = await fetch(`https://groqchatbot-xoiv.onrender.com/chat?mode=${selectedMode}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message: input, language: selectedLanguage }),
-                        });
+                        newMsgs.push({ type: 'bot', content: typedContent + '|', timestamp: botMessage.timestamp, isTyping: true, image: botMessage.image, persona: selectedMode });
                     }
-
-                    if (!response.ok) throw new Error(`Server error: ${response.status} - ${response.statusText}`);
-                    data = await response.json();
-
-                    const botMessage = {
-                        type: 'bot',
-                        content: sanitizeHTML(data.reply),
-                        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                        image: data.image_path ? `https://groqchatbot-xoiv.onrender.com/${data.image_path}` : null,
-                        persona: selectedMode,
-                        hasMemory: messages.length > 1
-                    };
-
-                    // Typing effect with cleanup
-                    let typedContent = '';
-                    const plainText = data.reply.replace(/<[^>]*>/g, '');
-                    typingRef.current = setInterval(() => {
-                        if (typedContent.length < plainText.length) {
-                            typedContent = plainText.substring(0, typedContent.length + 1);
-                            setMessages(prev => {
-                                const newMsgs = [...prev];
-                                if (newMsgs[newMsgs.length - 1]?.isTyping) {
-                                    newMsgs[newMsgs.length - 1] = { ...newMsgs[newMsgs.length - 1], content: sanitizeHTML(typedContent) + '|', isTyping: true, persona: selectedMode };
-                                } else {
-                                    newMsgs.push({ type: 'bot', content: sanitizeHTML(typedContent) + '|', timestamp: botMessage.timestamp, isTyping: true, image: botMessage.image, persona: selectedMode });
-                                }
-                                return newMsgs;
-                            });
-                        } else {
-                            clearInterval(typingRef.current);
-                            setMessages(prev => {
-                                const newMsgs = [...prev];
-                                newMsgs[newMsgs.length - 1] = botMessage;
-                                return newMsgs;
-                            });
-                        }
-                    }, 20);
-
-                } catch (err) {
-                    console.error('Send message error:', err);
-                    setError(`Error: ${err.message}. Try again!`);
-                    setMessages(prev => [...prev, { type: 'bot', content: 'Oops! Kuch toot gaya re baba... Try again! 😴', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), persona: selectedMode }]);
-                } finally {
-                    setIsLoading(false);
-                }
-            };
-
-            const handleKeyPress = (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            };
-
-            const toggleTheme = () => {
-                setIsDark(prev => {
-                    document.body.className = prev ? `light ${selectedMode}` : selectedMode;
-                    return !prev;
+                    return newMsgs;
                 });
-            };
+            }
 
-            const togglePersonaGrid = () => {
-                setIsPersonaGridOpen(prev => !prev);
-            };
+            setMessages(prev => {
+                const newMsgs = [...prev];
+                newMsgs[newMsgs.length - 1] = botMessage;
+                return newMsgs;
+            });
 
-            // Cleanup typing effect on unmount
-            useEffect(() => {
-                return () => clearInterval(typingRef.current);
-            }, []);
+        } catch (err) {
+            setError(`Error: ${err.message}`);
+            setMessages(prev => [...prev, { type: 'bot', content: `Oops! Kuch toot gaya re baba... Try again!`, timestamp: new Date().toLocaleTimeString(), persona: selectedMode }]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-            return (
-                <div className="chat-container">
-                    <div className="chat-header">
-                        <div>
-                            <div className="header-title">Sanu Sharma - NEURA-X AI</div>
-                            <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '4px' }}>
-                                Currently: <span className="current-persona">{currentPersonaName}</span>
-                            </div>
-                        </div>
-                        <div className="header-controls">
-                            <div className={`persona-selector-container ${isPersonaGridOpen ? 'open' : ''}`}>
-                                <button className="persona-selector-toggle" onClick={togglePersonaGrid}>
-                                    {currentPersonaName}
-                                </button>
-                                <div className="persona-grid">
-                                    {Object.entries(personaList).map(([key, name]) => (
-                                        <div
-                                            key={key}
-                                            className="persona-card"
-                                            onClick={() => {
-                                                setSelectedMode(key);
-                                                setIsPersonaGridOpen(false);
-                                            }}
-                                        >
-                                            <div>{personaAvatars[key]}</div>
-                                            <div>{name}</div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <button className="theme-toggle" onClick={toggleTheme}>
-                                {isDark ? 'Sun' : 'Moon'}
-                            </button>
-                        </div>
-                    </div>
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    };
 
-                    <div className="chat-messages">
-                        {messages.map((msg, i) => (
-                            <div key={i} className={`message ${msg.type}`}>
-                                {msg.type === 'bot' && <div className={`avatar bot ${msg.persona || selectedMode}`}></div>}
-                                <div className="message-wrapper">
-                                    <div className="message-content" dangerouslySetInnerHTML={{ __html: msg.content.replace(/\|$/, '') }} />
-                                    {msg.hasMemory && <span className="memory-icon">🧠</span>}
-                                    {msg.image && <img src={msg.image} alt="Uploaded" className="message-image" />}
-                                    <div className="message-time">{msg.timestamp}</div>
-                                </div>
-                                {msg.type === 'user' && <div className="avatar user">U</div>}
-                            </div>
-                        ))}
-                        {isLoading && (
-                            <div className="message bot">
-                                <div className={`avatar bot ${selectedMode}`}></div>
-                                <div className="typing-indicator">
-                                    <div className={`typing-dots ${selectedMode}`}>
-                                        <span></span><span></span><span></span>
-                                    </div>
-                                    <span className="typing-text">{currentPersonaName.split(' ')[0]} is typing...</span>
-                                </div>
-                            </div>
-                        )}
-                        {error && <div className="error-msg">{error}</div>}
-                        {selectedFile && <img src={URL.createObjectURL(selectedFile)} alt="Preview" className="image-preview" />}
-                        <div ref={messagesEndRef} />
-                    </div>
+    const toggleTheme = () => {
+        setIsDark(prev => {
+            document.body.className = prev ? `light ${selectedMode}` : selectedMode;
+            return !prev;
+        });
+    };
 
-                    <div className="chat-input">
-                        <input
-                            type="file"
-                            accept="image/jpeg,image/png,image/gif,image/webp"
-                            onChange={e => setSelectedFile(e.target.files[0])}
-                            className="file-input"
-                        />
-                        <textarea
-                            value={input}
-                            onChange={e => setInput(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                            className="input-field"
-                            placeholder={`Message ${currentPersonaName.split(' ')[0]}...`}
-                            disabled={isLoading}
-                            rows={2}
-                        />
-                        <button className="send-btn" onClick={sendMessage} disabled={isLoading || (!input.trim() && !selectedFile)}>
-                            {isLoading ? 'Sending...' : 'Send'}
-                        </button>
+    const togglePersonaGrid = () => {
+        setIsPersonaGridOpen(prev => !prev);
+    };
+
+    return (
+        <div className="chat-container">
+            <div className="chat-header">
+                <div>
+                    <div className="header-title">Sanu Sharma - NEURA-X AI</div>
+                    <div style={{fontSize: '0.9rem', opacity: 0.8, marginTop: '4px'}}>
+                        Currently: <span className="current-persona">{currentPersonaName}</span>
                     </div>
                 </div>
-            );
-        };
+                <div className="header-controls">
+                    <div className={`persona-selector-container ${isPersonaGridOpen ? 'open' : ''}`}>
+                        <button className="persona-selector-toggle" onClick={togglePersonaGrid}>
+                            {currentPersonaName}
+                        </button>
+                        <div className="persona-grid">
+                            {Object.entries(personaList).map(([key, name]) => (
+                                <div
+                                    key={key}
+                                    className="persona-card"
+                                    onClick={() => {
+                                        setSelectedMode(key);
+                                        setIsPersonaGridOpen(false);
+                                    }}
+                                >
+                                    <div>{personaAvatars[key]}</div>
+                                    <div>{name}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <button className="theme-toggle" onClick={toggleTheme}>
+                        {isDark ? 'Sun' : 'Moon'}
+                    </button>
+                </div>
+            </div>
 
-        ReactDOM.render(<ChatApp />, document.getElementById('root'));
-    </script>
+            <div className="chat-messages">
+                {messages.map((msg, i) => (
+                    <div key={i} className={`message ${msg.type}`}>
+                        {msg.type === 'bot' && <div className={`avatar bot ${msg.persona || selectedMode}`}></div>}
+                        <div className="message-wrapper">
+                            <div className="message-content" dangerouslySetInnerHTML={{ __html: msg.content.replace(/\|$/, '') }} />
+                            {msg.hasMemory && <span className="memory-icon">🧠</span>}
+                            {msg.image && <img src={msg.image} alt="Uploaded" className="message-image" />}
+                            <div className="message-time">{msg.timestamp}</div>
+                        </div>
+                        {msg.type === 'user' && <div className="avatar user">Cool</div>}
+                    </div>
+                ))}
+                {isLoading && (
+                    <div className="message bot">
+                        <div className={`avatar bot ${selectedMode}`}></div>
+                        <div className="typing-indicator">
+                            <div className={`typing-dots ${selectedMode}`}>
+                                <span></span><span></span><span></span>
+                            </div>
+                            <span className="typing-text">{currentPersonaName.split(' ')[0]} is typing...</span>
+                        </div>
+                    </div>
+                )}
+                {error && <div className="error-msg">{error}</div>}
+                {selectedFile && <img src={URL.createObjectURL(selectedFile)} alt="Preview" className="image-preview" />}
+                <div ref={messagesEndRef} />
+            </div>
+
+            <div className="chat-input">
+                <input type="file" accept="image/*" onChange={e => setSelectedFile(e.target.files[0])} className="file-input" />
+                <textarea
+                    value={input}
+                    onChange={e => setInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="input-field"
+                    placeholder={`Message ${currentPersonaName.split(' ')[0]}...`}
+                    disabled={isLoading}
+                    rows={2}
+                />
+                <button className="send-btn" onClick={sendMessage} disabled={isLoading || (!input.trim() && !selectedFile)}>
+                    {isLoading ? 'Sending' : 'Send'}
+                </button>
+            </div>
+        </div>
+    );
+};
+ReactDOM.render(<ChatApp />, document.getElementById('root'));
+</script>
 </body>
-</html>
+</html>sahi hai na 
