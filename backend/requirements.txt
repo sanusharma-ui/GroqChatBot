@@ -1,9 +1,11 @@
-fastapi>=0.104.0
-uvicorn[standard]>=0.23.0
-groq==0.11.0         
-httpx==0.27.2         
-python-dotenv>=1.0.0
-pydantic>=2.0
-Pillow>=10.0.0
-python-multipart>=0.0.9
-gunicorn>=21.2.0
+
+fastapi>=0.115.0,<0.116.0  # Web framework for building APIs
+uvicorn[standard]>=0.32.0,<0.33.0  # ASGI server for running FastAPI
+groq>=0.13.0,<0.14.0  # Groq API client for AI responses
+httpx>=0.27.2,<0.28.0  # HTTP client for async requests
+python-dotenv>=1.0.1,<2.0.0  # Load environment variables from .env
+pydantic>=2.9.2,<3.0.0  # Data validation and settings management
+Pillow>=10.4.0,<11.0.0  # Image processing for uploads
+python-multipart>=0.0.12,<0.1.0  # Handle multipart form data (file uploads)
+gunicorn>=23.0.0,<24.0.0  # WSGI server for production deployment
+filetype>=1.2.0,<2.0.0  # Image type detection (alternative to imghdr for Python 3.13+)
