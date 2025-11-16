@@ -5,7 +5,6 @@ import logging
 import mimetypes
 import uuid
 import shutil
-import imghdr
 from pathlib import Path
 from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException, File, UploadFile
@@ -74,9 +73,11 @@ class UpdateUserMeta(BaseModel):
 
 # Helper functions
 def validate_image(content: bytes) -> bool:
-    """Validate if the content is a valid image using imghdr."""
-    image_type = imghdr.what(None, h=content)
-    return image_type in ["jpeg", "png", "gif", "webp"]
+    """Validate if the content is a valid image using filetype (replacement for deprecated imghdr)."""
+    kind = filetype.guess(content)
+    if kind:
+        return kind.mime in ["image/jpeg", "image/png", "image/gif", "image/webp"]
+    return False
 
 def sanitize_filename(filename: str) -> str:
     """Sanitize filename to prevent path traversal."""
