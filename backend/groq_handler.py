@@ -21,10 +21,8 @@ if not GROQ_API_KEY:
     raise ValueError("GROQ_API_KEY not found! Please check your .env file.")
 
 client = Groq(api_key=GROQ_API_KEY)
-
-# ─────────────────────────────────────────────
+ 
 # MEMORY HANDLING PER PERSONA
-# ─────────────────────────────────────────────
 
 def get_memory_path(persona_key: str = "default") -> str:
     memory_dir = os.path.join(os.path.dirname(__file__), "memory")
@@ -165,10 +163,6 @@ def polish_reply(raw: str, mood: str) -> str:
 
     return text[:1000]
 
-
-# ─────────────────────────────────────────────
-# MAIN RESPONSE GENERATOR
-# ─────────────────────────────────────────────
 
 def generate_response(
     user_message: str,
